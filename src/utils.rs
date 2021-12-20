@@ -1,0 +1,48 @@
+use crate::rand::Wyhash64RNG;
+
+pub fn assert_sorted(a: &[u32]) {
+    for i in 1..a.len() {
+        for j in 0..i {
+            assert!(a[j] <= a[i]);
+        }
+    }
+}
+
+pub fn generate_array_identical(n: usize, x: u32) -> Vec<u32> {
+    let mut v = Vec::with_capacity(n);
+
+    v.resize(n, x);
+
+    v
+}
+
+pub fn generate_array_ascending(n: usize) -> Vec<u32> {
+    let mut v = Vec::with_capacity(n);
+
+    for i in 0..n {
+        v.push(i as u32);
+    }
+
+    v
+}
+
+pub fn generate_array_descending(n: usize) -> Vec<u32> {
+    let mut v = Vec::with_capacity(n);
+
+    for i in 0..n {
+        v.push((n - i) as u32);
+    }
+
+    v
+}
+
+pub fn generate_array_random(n: usize, lower: u64, upper: u64) -> Vec<u64> {
+    let mut v = Vec::with_capacity(n);
+    let mut r = Wyhash64RNG::new();
+
+    for _ in 0..n {
+        v.push(r.gen_in_range(lower, upper));
+    }
+
+    v
+}
