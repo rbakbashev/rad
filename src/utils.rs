@@ -1,6 +1,6 @@
 use crate::rand::Wyhash64RNG;
 
-pub fn assert_sorted(a: &[u32]) {
+pub fn assert_sorted<T: PartialOrd>(a: &[T]) {
     for i in 1..a.len() {
         for j in 0..i {
             assert!(a[j] <= a[i]);
@@ -8,31 +8,25 @@ pub fn assert_sorted(a: &[u32]) {
     }
 }
 
-pub fn generate_array_identical(n: usize, x: u32) -> Vec<u32> {
+pub fn generate_array_identical<T: Clone>(n: usize, x: T) -> Vec<T> {
     let mut v = Vec::with_capacity(n);
-
     v.resize(n, x);
-
     v
 }
 
-pub fn generate_array_ascending(n: usize) -> Vec<u32> {
+pub fn generate_array_ascending<T: From<u64>>(n: usize) -> Vec<T> {
     let mut v = Vec::with_capacity(n);
-
     for i in 0..n {
-        v.push(i as u32);
+        v.push((i as u64).into());
     }
-
     v
 }
 
-pub fn generate_array_descending(n: usize) -> Vec<u32> {
+pub fn generate_array_descending<T: From<u64>>(n: usize) -> Vec<T> {
     let mut v = Vec::with_capacity(n);
-
     for i in 0..n {
-        v.push((n - i) as u32);
+        v.push(((n - i) as u64).into());
     }
-
     v
 }
 

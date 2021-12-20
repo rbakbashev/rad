@@ -1,4 +1,4 @@
-fn insertion_sort(a: &mut [u32]) {
+fn insertion_sort<T: PartialOrd + Copy>(a: &mut [T]) {
     for i in 1..a.len() {
         let key = a[i];
         let mut j = i as isize - 1;
@@ -27,14 +27,14 @@ mod tests {
 
     #[test]
     fn ascending() {
-        let mut a = utils::generate_array_ascending(LEN);
+        let mut a: Vec<u64> = utils::generate_array_ascending(LEN);
         insertion_sort(&mut a);
         utils::assert_sorted(&a);
     }
 
     #[test]
     fn descending() {
-        let mut a = utils::generate_array_descending(LEN);
+        let mut a: Vec<u64> = utils::generate_array_descending(LEN);
         insertion_sort(&mut a);
         utils::assert_sorted(&a);
     }
