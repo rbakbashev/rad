@@ -40,3 +40,19 @@ pub fn generate_array_random(n: usize, lower: u64, upper: u64) -> Vec<u64> {
 
     v
 }
+
+pub fn generate_array_permuation<T: From<u64> + Copy>(n: usize) -> Vec<T> {
+    let mut v = generate_array_ascending(n);
+    permute(&mut v);
+    v
+}
+
+pub fn permute<T: Copy>(v: &mut [T]) {
+    let mut r = Wyhash64RNG::new();
+
+    for i in 0..v.len() {
+        let j = r.gen_in_range(0, (v.len() - 1) as u64) as usize;
+
+        v.swap(i, j);
+    }
+}

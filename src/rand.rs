@@ -41,6 +41,7 @@ fn time_seed() -> u64 {
     u64::from(full.subsec_nanos())
 }
 
+#[cfg(test)]
 mod tests {
     use super::*;
 

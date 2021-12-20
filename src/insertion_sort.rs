@@ -12,6 +12,7 @@ fn insertion_sort<T: PartialOrd + Copy>(a: &mut [T]) {
     }
 }
 
+#[cfg(test)]
 mod tests {
     use super::*;
     use crate::utils;
@@ -35,6 +36,20 @@ mod tests {
     #[test]
     fn descending() {
         let mut a: Vec<u64> = utils::generate_array_descending(LEN);
+        insertion_sort(&mut a);
+        utils::assert_sorted(&a);
+    }
+
+    #[test]
+    fn random() {
+        let mut a = utils::generate_array_random(LEN, 1, LEN as u64);
+        insertion_sort(&mut a);
+        utils::assert_sorted(&a);
+    }
+
+    #[test]
+    fn permutation() {
+        let mut a: Vec<u64> = utils::generate_array_permuation(LEN);
         insertion_sort(&mut a);
         utils::assert_sorted(&a);
     }
