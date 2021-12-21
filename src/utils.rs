@@ -56,3 +56,27 @@ pub fn permute<T: Copy>(v: &mut [T]) {
         v.swap(i, j);
     }
 }
+
+pub fn test_sort(f: fn(&mut [u64])) {
+    let len = 100;
+    let mut id = generate_array_identical(len, 1);
+    let mut asc = generate_array_ascending(len);
+    let mut desc = generate_array_descending(len);
+    let mut rand = generate_array_random(len, 1, len as u64);
+    let mut perm = generate_array_permuation(len);
+
+    f(&mut id);
+    assert_sorted(&id);
+
+    f(&mut asc);
+    assert_sorted(&asc);
+
+    f(&mut desc);
+    assert_sorted(&desc);
+
+    f(&mut rand);
+    assert_sorted(&rand);
+
+    f(&mut perm);
+    assert_sorted(&perm);
+}

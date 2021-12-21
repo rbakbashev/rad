@@ -56,44 +56,9 @@ fn merge<T: Default + Copy + PartialOrd>(a: &mut [T], l: usize, m: usize, h: usi
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::utils;
-
-    const LEN: usize = 20;
 
     #[test]
-    fn id() {
-        let mut a = utils::generate_array_identical(LEN, 1);
-        merge_sort(&mut a);
-        utils::assert_sorted(&a);
-    }
-
-    #[test]
-    fn ascending() {
-        let mut a: Vec<u64> = utils::generate_array_ascending(LEN);
-        merge_sort(&mut a);
-        utils::assert_sorted(&a);
-    }
-
-    #[test]
-    fn descending() {
-        let mut a: Vec<u64> = utils::generate_array_descending(LEN);
-        merge_sort(&mut a);
-        utils::assert_sorted(&a);
-    }
-
-    #[test]
-    fn random() {
-        let mut a = utils::generate_array_random(LEN, 1, LEN as u64);
-        merge_sort(&mut a);
-        utils::assert_sorted(&a);
-    }
-
-    #[test]
-    fn permutation() {
-        let mut a: Vec<u64> = utils::generate_array_permuation(LEN);
-        dbg!(&a);
-        merge_sort(&mut a);
-        dbg!(&a);
-        utils::assert_sorted(&a);
+    fn test() {
+        crate::utils::test_sort(merge_sort);
     }
 }
