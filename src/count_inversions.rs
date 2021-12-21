@@ -1,24 +1,30 @@
-pub fn merge_sort<T: Default + Copy + PartialOrd>(a: &mut [T]) {
-    merge_rec(a, 0, a.len() - 1);
+pub fn count_inversions<T: Default + Copy + PartialOrd>(a: &mut [T]) -> usize {
+    count_inv_rec(a, 0, a.len() - 1)
 }
 
-fn merge_rec<T: Default + Copy + PartialOrd>(a: &mut [T], l: usize, h: usize) {
-    let m = (l + h) / 2;
-
+fn count_inv_rec<T: Default + Copy + PartialOrd>(a: &mut [T], l: usize, h: usize) -> usize {
     if l == h {
-        return;
+        return 0;
     }
 
-    merge_rec(a, l, m);
-    merge_rec(a, m + 1, h);
-    merge(a, l, m, h);
+    let m = (l + h) / 2;
+    let left = count_inv_rec(a, l, m);
+    let right = count_inv_rec(a, m + 1, h);
+
+    left + right + count_inv_in_subranges(a, l, m, h)
 }
 
-fn merge<T: Default + Copy + PartialOrd>(a: &mut [T], l: usize, m: usize, h: usize) {
+fn count_inv_in_subranges<T: Default + Copy + PartialOrd>(
+    a: &mut [T],
+    l: usize,
+    m: usize,
+    h: usize,
+) -> usize {
     let llen = m - l + 1;
     let rlen = h - m;
     let mut left = Vec::new();
     let mut right = Vec::new();
+    let mut inv = 0;
 
     left.resize_with(llen, Default::default);
     right.resize_with(rlen, Default::default);
@@ -36,6 +42,7 @@ fn merge<T: Default + Copy + PartialOrd>(a: &mut [T], l: usize, m: usize, h: usi
         } else {
             a[k] = right[j];
             j += 1;
+            inv += llen - i;
         }
         k += 1;
     }
@@ -51,14 +58,17 @@ fn merge<T: Default + Copy + PartialOrd>(a: &mut [T], l: usize, m: usize, h: usi
         j += 1;
         k += 1;
     }
+
+    inv
 }
 
-#[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test() {
-        crate::utils::test_sort(merge_sort);
+        let mut v = vec![2, 3, 8, 6, 1];
+
+        assert_eq!(count_inversions(&mut v), 5);
     }
 }
