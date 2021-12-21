@@ -2,6 +2,7 @@
 #![allow(unused_imports)]
 
 mod insertion_sort;
+mod merge_sort;
 mod rand;
 mod utils;
 

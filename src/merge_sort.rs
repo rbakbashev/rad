@@ -1,0 +1,99 @@
+pub fn merge_sort<T: Default + Copy + PartialOrd>(a: &mut [T]) {
+    merge_rec(a, 0, a.len() - 1);
+}
+
+fn merge_rec<T: Default + Copy + PartialOrd>(a: &mut [T], l: usize, h: usize) {
+    let m = (l + h) / 2;
+
+    if l == h {
+        return;
+    }
+
+    merge_rec(a, l, m);
+    merge_rec(a, m + 1, h);
+    merge(a, l, m, h);
+}
+
+fn merge<T: Default + Copy + PartialOrd>(a: &mut [T], l: usize, m: usize, h: usize) {
+    let llen = m - l + 1;
+    let rlen = h - m;
+    let mut left = Vec::new();
+    let mut right = Vec::new();
+
+    left.resize_with(llen, Default::default);
+    right.resize_with(rlen, Default::default);
+
+    left.copy_from_slice(&a[l..=m]);
+    right.copy_from_slice(&a[m + 1..=h]);
+
+    let mut i = 0;
+    let mut j = 0;
+    let mut k = l;
+    while i < llen && j < rlen {
+        if left[i] <= right[j] {
+            a[k] = left[i];
+            i += 1;
+        } else {
+            a[k] = right[j];
+            j += 1;
+        }
+        k += 1;
+    }
+
+    while i != llen {
+        a[k] = left[i];
+        k += 1;
+        i += 1;
+    }
+
+    while j != rlen {
+        a[k] = right[j];
+        k += 1;
+        j += 1;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::utils;
+
+    const LEN: usize = 20;
+
+    #[test]
+    fn id() {
+        let mut a = utils::generate_array_identical(LEN, 1);
+        merge_sort(&mut a);
+        utils::assert_sorted(&a);
+    }
+
+    #[test]
+    fn ascending() {
+        let mut a: Vec<u64> = utils::generate_array_ascending(LEN);
+        merge_sort(&mut a);
+        utils::assert_sorted(&a);
+    }
+
+    #[test]
+    fn descending() {
+        let mut a: Vec<u64> = utils::generate_array_descending(LEN);
+        merge_sort(&mut a);
+        utils::assert_sorted(&a);
+    }
+
+    #[test]
+    fn random() {
+        let mut a = utils::generate_array_random(LEN, 1, LEN as u64);
+        merge_sort(&mut a);
+        utils::assert_sorted(&a);
+    }
+
+    #[test]
+    fn permutation() {
+        let mut a: Vec<u64> = utils::generate_array_permuation(LEN);
+        dbg!(&a);
+        merge_sort(&mut a);
+        dbg!(&a);
+        utils::assert_sorted(&a);
+    }
+}
