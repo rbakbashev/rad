@@ -2,10 +2,7 @@ pub struct List {
     head: Link,
 }
 
-enum Link {
-    Empty,
-    More(Box<Node>),
-}
+type Link = Option<Box<Node>>;
 
 struct Node {
     elem: i32,
@@ -14,25 +11,32 @@ struct Node {
 
 impl List {
     pub fn new() -> Self {
-        List { head: Link::Empty }
+        List { head: None }
     }
 
     pub fn push(&mut self, elem: i32) {
         let new = Box::new(Node {
             elem,
-            next: std::mem::replace(&mut self.head, Link::Empty),
+            next: self.head.take()
         });
 
-        self.head = Link::More(new);
+        self.head = Some(new);
     }
 
     pub fn pop(&mut self) -> Option<i32> {
-        match std::mem::replace(&mut self.head, Link::Empty) {
-            Link::More(node) => {
-                self.head = node.next;
-                Some(node.elem)
-            },
-            Link::Empty => None
+        self.head.take().map(|node| {
+            self.head = node.next;
+            node.elem
+        })
+    }
+}
+
+impl Drop for List {
+    fn drop(&mut self) {
+        let mut it = self.head.take();
+
+        while let Some(mut node) = it {
+            it = node.next.take();
         }
     }
 }
@@ -41,20 +45,12 @@ impl std::fmt::Display for List {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let mut it = &self.head;
 
-        loop {
-            match it {
-                Link::More(node) => {
-                    it = &node.next;
-                    write!(f, "{} → ", node.elem)?;
-                }
-                Link::Empty => {
-                    write!(f, "nil")?;
-                    break;
-                }
-            }
+        while let Some(node) = it {
+            it = &node.next;
+            write!(f, "{} → ", node.elem)?;
         }
 
-        Ok(())
+        write!(f, "nil")
     }
 }
 
