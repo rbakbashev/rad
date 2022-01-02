@@ -2,6 +2,7 @@
 #![allow(unused_imports)]
 
 mod algorithms;
+mod data_structures;
 mod rand;
 mod utils;
 
