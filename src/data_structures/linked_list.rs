@@ -25,21 +25,17 @@ impl<T> List<T> {
     }
 
     pub fn peek(&self) -> Option<&T> {
-        self.head.as_ref().map(|node| {
-            &node.elem
-        })
+        self.head.as_ref().map(|node| &node.elem)
     }
 
     pub fn peek_mut(&mut self) -> Option<&mut T> {
-        self.head.as_mut().map(|node| {
-            &mut node.elem
-        })
+        self.head.as_mut().map(|node| &mut node.elem)
     }
 
     pub fn push(&mut self, elem: T) {
         let new = Box::new(Node {
             elem,
-            next: self.head.take()
+            next: self.head.take(),
         });
 
         self.head = Some(new);
@@ -57,11 +53,15 @@ impl<T> List<T> {
     }
 
     pub fn iter(&self) -> Iter<T> {
-        Iter { next: self.head.as_deref() }
+        Iter {
+            next: self.head.as_deref(),
+        }
     }
 
     pub fn iter_mut(&mut self) -> IterMut<T> {
-        IterMut { next: self.head.as_deref_mut() }
+        IterMut {
+            next: self.head.as_deref_mut(),
+        }
     }
 }
 
@@ -145,7 +145,7 @@ mod tests {
         list.push(2);
         list.push(1);
 
-        list.peek_mut().map(|value| { *value = 100 });
+        list.peek_mut().map(|value| *value = 100);
 
         println!("{}", list);
     }
