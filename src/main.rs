@@ -4,7 +4,9 @@
 mod algorithms;
 mod data_structures;
 mod rand;
-mod utils;
+
+#[cfg(test)]
+mod tests;
 
 fn main() {
     println!("Hello, world!");

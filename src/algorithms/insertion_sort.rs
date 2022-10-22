@@ -15,5 +15,5 @@ fn insertion_sort<T: PartialOrd + Copy>(a: &mut [T]) {
 #[cfg(test)]
 #[test]
 fn test() {
-    crate::utils::test_sort(insertion_sort);
+    crate::tests::test_sort(insertion_sort);
 }

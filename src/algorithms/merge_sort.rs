@@ -56,5 +56,5 @@ fn merge<T: Default + Copy + PartialOrd>(a: &mut [T], l: usize, m: usize, h: usi
 #[cfg(test)]
 #[test]
 fn test() {
-    crate::utils::test_sort(merge_sort);
+    crate::tests::test_sort(merge_sort);
 }
