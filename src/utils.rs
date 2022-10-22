@@ -1,9 +1,9 @@
 use crate::rand::Wyhash64RNG;
 
-pub fn assert_sorted<T: PartialOrd>(a: &[T]) {
+pub fn assert_sorted<T: PartialOrd + std::fmt::Display>(a: &[T]) {
     for i in 1..a.len() {
         for j in 0..i {
-            assert!(a[j] <= a[i]);
+            assert!(a[j] <= a[i], "a[{}] = {} > a[{}] = {}", j, a[j], i, a[i]);
         }
     }
 }
