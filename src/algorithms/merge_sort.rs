@@ -54,11 +54,7 @@ fn merge<T: Default + Copy + PartialOrd>(a: &mut [T], l: usize, m: usize, h: usi
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test() {
-        crate::utils::test_sort(merge_sort);
-    }
+#[test]
+fn test() {
+    crate::utils::test_sort(merge_sort);
 }

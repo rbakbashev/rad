@@ -13,11 +13,7 @@ fn insertion_sort<T: PartialOrd + Copy>(a: &mut [T]) {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test() {
-        crate::utils::test_sort(insertion_sort);
-    }
+#[test]
+fn test() {
+    crate::utils::test_sort(insertion_sort);
 }
