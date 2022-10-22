@@ -14,11 +14,12 @@ impl Wyhash64RNG {
     }
 
     pub fn gen(&mut self) -> u64 {
-        self.state = self.state.wrapping_add(0x60bee2bee120fc15);
-        let mut tmp: u128 = (self.state as u128).wrapping_mul(0xa3b195354a39b70d);
-        let m1: u64 = ((tmp >> 64) ^ tmp) as u64;
-        tmp = (m1 as u128).wrapping_mul(0x1b03738712fad5c9);
-        ((tmp >> 64) ^ tmp) as u64
+        self.state = self.state.wrapping_add(0x60be_e2be_e120_fc15);
+        let t = u128::from(self.state).wrapping_mul(0xa3b1_9535_4a39_b70d);
+        let m = (((t >> 64) ^ t) & 0xffff_ffff_ffff_ffff) as u64;
+        let y = u128::from(m).wrapping_mul(0x1b03_7387_12fa_d5c9);
+
+        (((y >> 64) ^ y) & 0xffff_ffff_ffff_ffff) as u64
     }
 
     pub fn gen_in_range(&mut self, min: u64, max: u64) -> u64 {
@@ -48,7 +49,7 @@ mod tests {
     const ITERATIONS: usize = 1000000;
 
     #[test]
-    pub fn rand_test() {
+    fn rand_test() {
         let attempts = 10;
 
         for seed in 1..attempts {
@@ -69,7 +70,7 @@ mod tests {
     }
 
     #[test]
-    pub fn rand_test_range() {
+    fn rand_test_range() {
         let attempts = 10;
 
         for seed in 1..attempts {
