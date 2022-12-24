@@ -1,7 +1,7 @@
 use std::mem;
 
 #[derive(Debug)]
-struct BorrowingHeap<'d, T>
+pub struct BorrowingHeap<'d, T>
 where
     T: Ord,
 {
@@ -44,7 +44,7 @@ where
         self.data[x] > self.data[y]
     }
 
-    pub fn sift_down(&mut self, mut i: usize) {
+    fn sift_down(&mut self, mut i: usize) {
         loop {
             let l = Self::left_child(i);
             let r = Self::right_child(i);
@@ -102,21 +102,13 @@ where
 
         elem
     }
-}
 
-fn heap_sort<T: Ord + Copy + std::fmt::Debug>(a: &mut [T]) {
-    let mut h = BorrowingHeap::from_slice(a);
+    pub fn sort(mut self) {
+        for i in (1..self.len).rev() {
+            self.data.swap(0, i);
 
-    for i in (1..h.len).rev() {
-        h.data.swap(0, i);
-
-        h.len -= 1;
-        h.sift_down(0);
+            self.len -= 1;
+            self.sift_down(0);
+        }
     }
-}
-
-#[cfg(test)]
-#[test]
-fn test_sort() {
-    crate::tests::test_sort(heap_sort);
 }
