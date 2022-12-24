@@ -1,3 +1,5 @@
+#![allow(clippy::module_name_repetitions)]
+
 use std::mem;
 
 #[derive(Debug)]
@@ -22,7 +24,7 @@ where
         };
 
         for i in (0..=(slice_len / 2)).rev() {
-            heap.sift_down(i as usize);
+            heap.sift_down(i);
         }
 
         heap
