@@ -186,15 +186,43 @@ mod tests {
 
     #[test]
     fn balanced() {
-        let num = 512;
-        let exp = 9; // log2(512)
+        let num_nodes = 512;
+        let expected_depth = 9; // log2(512)
         let mut tree = AvlTree::new();
 
-        for i in 1..num {
+        for i in 1..num_nodes {
             tree.insert(i);
         }
 
-        assert_eq!(calc_height(&tree, tree.root), exp);
+        assert_eq!(calc_height(&tree, tree.root), expected_depth);
+    }
+
+    #[test]
+    fn balanced_rev() {
+        let num_nodes = 512;
+        let expected_depth = 9; // log2(512)
+        let mut tree = AvlTree::new();
+
+        for i in (1..num_nodes).rev() {
+            tree.insert(i);
+        }
+
+        assert_eq!(calc_height(&tree, tree.root), expected_depth);
+    }
+
+    #[test]
+    fn balanced_rand() {
+        let num_nodes = 512;
+        let expected_depth = 9; // log2(512)
+        let mut rand = crate::rand::Wyhash64RNG::from_seed(123);
+        let mut tree = AvlTree::new();
+
+        for _ in 1..num_nodes {
+            let num = rand.gen_in_range(0..num_nodes);
+            tree.insert(num);
+        }
+
+        assert!(calc_height(&tree, tree.root).abs_diff(expected_depth) <= 2);
     }
 
     fn calc_height<T>(tree: &AvlTree<T>, x: usize) -> usize {
@@ -220,5 +248,66 @@ mod tests {
         for k in 1..num {
             assert!(tree.has_key(k));
         }
+
+        assert!(!tree.has_key(num));
+    }
+
+    #[test]
+    fn print() {
+        let mut tree = AvlTree::default();
+
+        for i in 1..=16 {
+            tree.insert(i);
+        }
+
+        let printout = format!("{}", tree);
+        let expected = "\
+8
+├── 12
+│   ├── 14
+│   │   ├── 15
+│   │   │   └── 16
+│   │   └── 13
+│   └── 10
+│       ├── 11
+│       └── 9
+└── 4
+    ├── 6
+    │   ├── 7
+    │   └── 5
+    └── 2
+        ├── 3
+        └── 1
+";
+
+        assert_eq!(printout, expected);
+    }
+
+    #[test]
+    fn print_empty() {
+        let tree: AvlTree<u8> = AvlTree::default();
+
+        let printout = format!("{}", tree);
+        let expected = "nil\n";
+
+        assert_eq!(printout, expected);
+    }
+
+    #[test]
+    fn print_single() {
+        let mut tree = AvlTree::default();
+
+        tree.insert(5);
+        tree.insert(3);
+
+        println!("{tree}");
+
+        let printout = format!("{}", tree);
+        let expected = "\
+5
+└── 3
+";
+
+        assert_eq!(printout, expected);
     }
 }
