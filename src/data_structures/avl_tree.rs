@@ -13,7 +13,7 @@ pub struct AvlTree<T> {
     nodes: Vec<Node<T>>,
 }
 
-impl<T: fmt::Display> Node<T> {
+impl<T> Node<T> {
     fn new(key: T) -> Self {
         Self {
             key,
@@ -57,8 +57,6 @@ impl<T: Ord + Copy + fmt::Display> AvlTree<T> {
     }
 
     fn balance(&mut self, x: usize) -> usize {
-        self.update_height(x);
-
         let d = self.diff(x);
 
         if d > 1 {
@@ -74,6 +72,8 @@ impl<T: Ord + Copy + fmt::Display> AvlTree<T> {
 
             self.right_rotate(x)
         } else {
+            self.update_height(x);
+
             x
         }
     }
@@ -184,45 +184,42 @@ impl<T: Ord + Copy + fmt::Display> fmt::Display for AvlTree<T> {
 mod tests {
     use super::*;
 
+    const NUM_NODES: u32 = 512;
+    const EXP_DEPTH: usize = NUM_NODES.ilog2() as usize;
+
     #[test]
     fn balanced() {
-        let num_nodes = 512;
-        let expected_depth = 9; // log2(512)
         let mut tree = AvlTree::new();
 
-        for i in 1..num_nodes {
+        for i in 1..NUM_NODES {
             tree.insert(i);
         }
 
-        assert_eq!(calc_height(&tree, tree.root), expected_depth);
+        assert_eq!(calc_height(&tree, tree.root), EXP_DEPTH);
     }
 
     #[test]
     fn balanced_rev() {
-        let num_nodes = 512;
-        let expected_depth = 9; // log2(512)
         let mut tree = AvlTree::new();
 
-        for i in (1..num_nodes).rev() {
+        for i in (1..NUM_NODES).rev() {
             tree.insert(i);
         }
 
-        assert_eq!(calc_height(&tree, tree.root), expected_depth);
+        assert_eq!(calc_height(&tree, tree.root), EXP_DEPTH);
     }
 
     #[test]
     fn balanced_rand() {
-        let num_nodes = 512;
-        let expected_depth = 9; // log2(512)
         let mut rand = crate::rand::Wyhash64RNG::from_seed(123);
         let mut tree = AvlTree::new();
 
-        for _ in 1..num_nodes {
-            let num = rand.gen_in_range(0..num_nodes);
+        for _ in 1..NUM_NODES {
+            let num = rand.gen_in_range(0..NUM_NODES.into());
             tree.insert(num);
         }
 
-        assert!(calc_height(&tree, tree.root).abs_diff(expected_depth) <= 2);
+        assert!(calc_height(&tree, tree.root).abs_diff(EXP_DEPTH) <= 2);
     }
 
     fn calc_height<T>(tree: &AvlTree<T>, x: usize) -> usize {
