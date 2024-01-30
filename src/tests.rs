@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::rand::Wyhash64RNG;
 
 pub fn assert_sorted<T: PartialOrd + std::fmt::Display>(a: &[T]) {
@@ -8,10 +10,8 @@ pub fn assert_sorted<T: PartialOrd + std::fmt::Display>(a: &[T]) {
     }
 }
 
-pub fn generate_array_identical<T: Clone>(n: usize, x: T) -> Vec<T> {
-    let mut v = Vec::with_capacity(n);
-    v.resize(n, x);
-    v
+pub fn generate_array_identical<T: Copy>(n: usize, x: T) -> Vec<T> {
+    vec![x; n]
 }
 
 pub fn generate_array_ascending<T: From<u64>>(n: usize) -> Vec<T> {
@@ -58,25 +58,39 @@ pub fn permute<T: Copy>(v: &mut [T]) {
 }
 
 pub fn test_sort(f: fn(&mut [u64])) {
-    let len = 100;
-    let mut id = generate_array_identical(len, 1);
-    let mut asc = generate_array_ascending(len);
-    let mut desc = generate_array_descending(len);
-    let mut rand = generate_array_random(len, 1, len as u64);
-    let mut perm = generate_array_permuation(len);
+    let len = 1000;
+    let id = generate_array_identical(len, 1);
+    let asc = generate_array_ascending(len);
+    let desc = generate_array_descending(len);
+    let rand = generate_array_random(len, 1, len as u64);
+    let perm = generate_array_permuation(len);
 
-    f(&mut id);
-    assert_sorted(&id);
+    test_sort_single(f, id);
+    test_sort_single(f, asc);
+    test_sort_single(f, desc);
+    test_sort_single(f, rand);
+    test_sort_single(f, perm);
+}
 
-    f(&mut asc);
-    assert_sorted(&asc);
+fn test_sort_single(f: fn(&mut [u64]), mut values: Vec<u64>) {
+    let orig = values.clone();
 
-    f(&mut desc);
-    assert_sorted(&desc);
+    f(&mut values);
 
-    f(&mut rand);
-    assert_sorted(&rand);
+    assert_sorted(&values);
 
-    f(&mut perm);
-    assert_sorted(&perm);
+    let old_counts = count_elements(&orig);
+    let new_counts = count_elements(&values);
+
+    assert_eq!(old_counts, new_counts);
+}
+
+fn count_elements(values: &[u64]) -> HashMap<u64, usize> {
+    let mut map = HashMap::new();
+
+    for v in values {
+        map.entry(*v).and_modify(|count| *count += 1).or_insert(1);
+    }
+
+    map
 }
