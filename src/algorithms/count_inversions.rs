@@ -62,13 +62,10 @@ fn count_inv_in_subranges<T: Default + Copy + PartialOrd>(
     inv
 }
 
-mod tests {
-    use super::*;
+#[cfg(test)]
+#[test]
+fn test() {
+    let mut v = vec![2, 3, 8, 6, 1];
 
-    #[test]
-    fn test() {
-        let mut v = vec![2, 3, 8, 6, 1];
-
-        assert_eq!(count_inversions(&mut v), 5);
-    }
+    assert_eq!(count_inversions(&mut v), 5);
 }

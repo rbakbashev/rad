@@ -170,29 +170,25 @@ fn intervals_overlap<T: Ord + Copy>(x0: T, x1: T, y0: T, y1: T) -> bool {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
+#[test]
+fn find_intervals() {
+    let mut tree = IntervalTree::new();
 
-    #[test]
-    fn find_intervals() {
-        let mut tree = IntervalTree::new();
+    tree.insert(26, 26);
+    tree.insert(25, 30);
+    tree.insert(19, 20);
+    tree.insert(17, 19);
+    tree.insert(16, 21);
+    tree.insert(15, 23);
+    tree.insert(8, 9);
+    tree.insert(6, 10);
+    tree.insert(5, 8);
+    tree.insert(0, 3);
 
-        tree.insert(26, 26);
-        tree.insert(25, 30);
-        tree.insert(19, 20);
-        tree.insert(17, 19);
-        tree.insert(16, 21);
-        tree.insert(15, 23);
-        tree.insert(8, 9);
-        tree.insert(6, 10);
-        tree.insert(5, 8);
-        tree.insert(0, 3);
-
-        assert_eq!(tree.search(19, 19), Some((17, 19)));
-        assert_eq!(tree.search(27, 29), Some((25, 30)));
-        assert_eq!(tree.search(15, 15), Some((15, 23)));
-        assert_eq!(tree.search(6, 9), Some((6, 10)));
-        assert_eq!(tree.search(24, 24), None);
-        assert_eq!(tree.search(11, 14), None);
-    }
+    assert_eq!(tree.search(19, 19), Some((17, 19)));
+    assert_eq!(tree.search(27, 29), Some((25, 30)));
+    assert_eq!(tree.search(15, 15), Some((15, 23)));
+    assert_eq!(tree.search(6, 9), Some((6, 10)));
+    assert_eq!(tree.search(24, 24), None);
+    assert_eq!(tree.search(11, 14), None);
 }

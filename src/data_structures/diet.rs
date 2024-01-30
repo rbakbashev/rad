@@ -231,5 +231,8 @@ fn test() {
     d = insert(8, &d);
     d = insert(4, &d);
 
-    assert_eq!(d, Diet::Node(1, 18, Box::new(Diet::Empty), Box::new(Diet::Empty)));
+    assert_eq!(
+        d,
+        Diet::Node(1, 18, Box::new(Diet::Empty), Box::new(Diet::Empty))
+    );
 }
