@@ -46,6 +46,7 @@ where
         self.data[x] > self.data[y]
     }
 
+    #[allow(clippy::useless_let_if_seq)]
     fn sift_down(&mut self, mut i: usize) {
         loop {
             let l = Self::left_child(i);

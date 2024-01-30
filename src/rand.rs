@@ -6,6 +6,7 @@ pub struct Wyhash64RNG {
 }
 
 impl Wyhash64RNG {
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self::from_seed(current_time_ns())
     }
@@ -34,7 +35,9 @@ impl Wyhash64RNG {
 
 fn current_time_ns() -> u64 {
     let now = time::SystemTime::now();
-    let full = now.duration_since(time::UNIX_EPOCH).unwrap();
+    let full = now
+        .duration_since(time::UNIX_EPOCH)
+        .expect("Current time before Unix epoch");
 
     u64::from(full.subsec_nanos())
 }
