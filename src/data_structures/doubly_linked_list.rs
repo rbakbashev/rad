@@ -11,6 +11,11 @@ struct Node<T> {
     prev: usize,
 }
 
+pub struct ListIterator<'n, T> {
+    nodes: &'n [Node<T>],
+    next: usize,
+}
+
 const NIL: usize = usize::MAX;
 
 impl<T> List<T> {
@@ -80,6 +85,27 @@ impl<T> List<T> {
             idx => Some(&self.nodes[idx].elem),
         }
     }
+
+    pub fn iter(&self) -> ListIterator<T> {
+        ListIterator {
+            nodes: self.nodes.as_slice(),
+            next: self.head,
+        }
+    }
+}
+
+impl<T> Default for List<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<'n, T> IntoIterator for &'n List<T> {
+    type Item = &'n T;
+    type IntoIter = ListIterator<'n, T>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
 }
 
 impl<T> Node<T> {
@@ -88,6 +114,20 @@ impl<T> Node<T> {
             elem,
             next: NIL,
             prev: NIL,
+        }
+    }
+}
+
+impl<'n, T> Iterator for ListIterator<'n, T> {
+    type Item = &'n T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.next {
+            NIL => None,
+            idx => {
+                self.next = self.nodes[idx].next;
+                Some(&self.nodes[idx].elem)
+            }
         }
     }
 }
@@ -110,6 +150,9 @@ mod tests {
 
         list.push_front(3);
         assert_eq!(list.front(), Some(&3));
+
+        let collection = list.iter().map(|elem| *elem).collect::<Vec<_>>();
+        assert_eq!(collection, vec![3, 2, 1]);
     }
 
     #[test]
@@ -126,5 +169,17 @@ mod tests {
 
         list.push_back(3);
         assert_eq!(list.back(), Some(&3));
+
+        let collection = list.iter().map(|elem| *elem).collect::<Vec<_>>();
+        assert_eq!(collection, vec![1, 2, 3]);
+    }
+
+    #[test]
+    fn drop() {
+        let mut list = List::new();
+
+        for i in 0..1000000 {
+            list.push_back(i);
+        }
     }
 }
