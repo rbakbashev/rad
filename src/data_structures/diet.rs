@@ -1,13 +1,6 @@
 //! Discrete Interval Encoding Tree (DIET).
 //! A direct (and quite ugly) translation of diet.hs from "Diets for Fat Sets", JFP98.
 
-#![allow(
-    clippy::many_single_char_names,
-    clippy::uninlined_format_args,
-    clippy::option_if_let_else,
-    clippy::missing_const_for_fn
-)]
-
 use std::cmp::{max, min};
 
 #[derive(Clone, Debug, PartialEq)]
@@ -167,6 +160,7 @@ fn no_less_than(d: &Diet, a: i16) -> (Diet, i16) {
     }
 }
 
+#[allow(clippy::option_if_let_else)]
 fn insert_range(px: i16, py: i16, d: &Diet) -> Diet {
     match d {
         Diet::Empty => Diet::Node(px, py, Box::new(Diet::Empty), Box::new(Diet::Empty)),
