@@ -1,4 +1,4 @@
-use std::mem;
+use std::{fmt, mem};
 
 pub struct List<T: Default> {
     head: usize,
@@ -12,6 +12,8 @@ struct Node<T> {
     next: usize,
     prev: usize,
 }
+
+pub struct ListIntoIter<T: Default>(List<T>);
 
 pub struct ListIterator<'n, T> {
     nodes: &'n [Node<T>],
@@ -144,11 +146,31 @@ impl<T: Default> Default for List<T> {
     }
 }
 
+impl<T: Default> IntoIterator for List<T> {
+    type Item = T;
+    type IntoIter = ListIntoIter<T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        ListIntoIter(self)
+    }
+}
+
 impl<'n, T: Default> IntoIterator for &'n List<T> {
     type Item = &'n T;
     type IntoIter = ListIterator<'n, T>;
+
     fn into_iter(self) -> Self::IntoIter {
         self.iter()
+    }
+}
+
+impl<T: fmt::Display + Default> fmt::Display for List<T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for elem in self {
+            write!(f, "{} → ", elem)?;
+        }
+
+        write!(f, "nil")
     }
 }
 
@@ -159,6 +181,14 @@ impl<T> Node<T> {
             next: NIL,
             prev: NIL,
         }
+    }
+}
+
+impl<T: Default> Iterator for ListIntoIter<T> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.pop_front()
     }
 }
 
@@ -276,5 +306,21 @@ mod tests {
 
         assert_eq!(iter, vec![3, 4, 5, 6, 7]);
         assert_eq!(data, vec![7, 6, 3, 4, 5]);
+    }
+
+    #[test]
+    fn into_iter() {
+        let mut list = List::new();
+
+        list.push_back(1);
+        list.push_back(2);
+        list.push_back(3);
+
+        let mut iter = list.into_iter();
+
+        assert_eq!(iter.next(), Some(1));
+        assert_eq!(iter.next(), Some(2));
+        assert_eq!(iter.next(), Some(3));
+        assert_eq!(iter.next(), None);
     }
 }

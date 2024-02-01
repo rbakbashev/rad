@@ -143,11 +143,8 @@ impl<'a, T> Iterator for ListIterMut<'a, T> {
 
 impl<T: fmt::Display> fmt::Display for List<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let mut it = &self.head;
-
-        while let Some(node) = it {
-            write!(f, "{} → ", node.elem)?;
-            it = &node.next;
+        for elem in self {
+            write!(f, "{} → ", elem)?;
         }
 
         write!(f, "nil")
