@@ -1,3 +1,5 @@
+use std::fmt;
+
 pub struct List<T> {
     head: Link<T>,
 }
@@ -24,14 +26,6 @@ impl<T> List<T> {
         Self { head: None }
     }
 
-    pub fn peek(&self) -> Option<&T> {
-        self.head.as_ref().map(|node| &node.elem)
-    }
-
-    pub fn peek_mut(&mut self) -> Option<&mut T> {
-        self.head.as_mut().map(|node| &mut node.elem)
-    }
-
     pub fn push(&mut self, elem: T) {
         let new = Box::new(Node {
             elem,
@@ -46,6 +40,14 @@ impl<T> List<T> {
             self.head = node.next;
             node.elem
         })
+    }
+
+    pub fn peek(&self) -> Option<&T> {
+        self.head.as_ref().map(|node| &node.elem)
+    }
+
+    pub fn peek_mut(&mut self) -> Option<&mut T> {
+        self.head.as_mut().map(|node| &mut node.elem)
     }
 
     pub fn iter(&self) -> ListIterator<T> {
@@ -68,6 +70,12 @@ impl<T> Drop for List<T> {
         while let Some(mut node) = it {
             it = node.next.take();
         }
+    }
+}
+
+impl<T> Default for List<T> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -128,8 +136,8 @@ impl<'a, T> Iterator for ListIterMut<'a, T> {
     }
 }
 
-impl<T: std::fmt::Display> std::fmt::Display for List<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+impl<T: fmt::Display> fmt::Display for List<T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut it = &self.head;
 
         while let Some(node) = it {
