@@ -9,13 +9,13 @@ struct Node<T> {
     next: Link<T>,
 }
 
-pub struct IntoIter<T>(List<T>);
+pub struct ListIntoIter<T>(List<T>);
 
-pub struct Iter<'a, T> {
+pub struct ListIterator<'a, T> {
     next: Option<&'a Node<T>>,
 }
 
-pub struct IterMut<'a, T> {
+pub struct ListIterMut<'a, T> {
     next: Option<&'a mut Node<T>>,
 }
 
@@ -48,18 +48,14 @@ impl<T> List<T> {
         })
     }
 
-    pub fn into_iter(self) -> IntoIter<T> {
-        IntoIter(self)
-    }
-
-    pub fn iter(&self) -> Iter<T> {
-        Iter {
+    pub fn iter(&self) -> ListIterator<T> {
+        ListIterator {
             next: self.head.as_deref(),
         }
     }
 
-    pub fn iter_mut(&mut self) -> IterMut<T> {
-        IterMut {
+    pub fn iter_mut(&mut self) -> ListIterMut<T> {
+        ListIterMut {
             next: self.head.as_deref_mut(),
         }
     }
@@ -75,7 +71,34 @@ impl<T> Drop for List<T> {
     }
 }
 
-impl<T> Iterator for IntoIter<T> {
+impl<T> IntoIterator for List<T> {
+    type Item = T;
+    type IntoIter = ListIntoIter<T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        ListIntoIter(self)
+    }
+}
+
+impl<'a, T> IntoIterator for &'a List<T> {
+    type Item = &'a T;
+    type IntoIter = ListIterator<'a, T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
+impl<'a, T> IntoIterator for &'a mut List<T> {
+    type Item = &'a mut T;
+    type IntoIter = ListIterMut<'a, T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter_mut()
+    }
+}
+
+impl<T> Iterator for ListIntoIter<T> {
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -83,7 +106,7 @@ impl<T> Iterator for IntoIter<T> {
     }
 }
 
-impl<'a, T> Iterator for Iter<'a, T> {
+impl<'a, T> Iterator for ListIterator<'a, T> {
     type Item = &'a T;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -94,7 +117,7 @@ impl<'a, T> Iterator for Iter<'a, T> {
     }
 }
 
-impl<'a, T> Iterator for IterMut<'a, T> {
+impl<'a, T> Iterator for ListIterMut<'a, T> {
     type Item = &'a mut T;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -186,6 +209,38 @@ mod tests {
         assert_eq!(iter.next(), Some(3));
         assert_eq!(iter.next(), Some(2));
         assert_eq!(iter.next(), Some(1));
+        assert_eq!(iter.next(), None);
+    }
+
+    #[test]
+    fn into_iter_ref() {
+        let mut list = List::new();
+
+        list.push(1);
+        list.push(2);
+        list.push(3);
+
+        let mut iter = (&list).into_iter();
+
+        assert_eq!(iter.next(), Some(&3));
+        assert_eq!(iter.next(), Some(&2));
+        assert_eq!(iter.next(), Some(&1));
+        assert_eq!(iter.next(), None);
+    }
+
+    #[test]
+    fn into_iter_mut() {
+        let mut list = List::new();
+
+        list.push(1);
+        list.push(2);
+        list.push(3);
+
+        let mut iter = (&mut list).into_iter();
+
+        assert_eq!(iter.next(), Some(&mut 3));
+        assert_eq!(iter.next(), Some(&mut 2));
+        assert_eq!(iter.next(), Some(&mut 1));
         assert_eq!(iter.next(), None);
     }
 
