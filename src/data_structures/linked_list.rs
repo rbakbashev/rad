@@ -1,3 +1,8 @@
+//! Singly-linked list with individually heap-allocated nodes, based with slight modifications on
+//! code from a great book [Learning Rust With Entirely Too Many Linked Lists][link].
+//!
+//! [link]: https://rust-unofficial.github.io/too-many-lists/index.html
+
 use std::fmt;
 
 pub struct List<T> {
@@ -141,8 +146,8 @@ impl<T: fmt::Display> fmt::Display for List<T> {
         let mut it = &self.head;
 
         while let Some(node) = it {
-            it = &node.next;
             write!(f, "{} → ", node.elem)?;
+            it = &node.next;
         }
 
         write!(f, "nil")
