@@ -1,4 +1,6 @@
-pub struct List<T> {
+use std::mem;
+
+pub struct List<T: Default> {
     head: usize,
     tail: usize,
     nodes: Vec<Node<T>>,
@@ -18,7 +20,7 @@ pub struct ListIterator<'n, T> {
 
 const NIL: usize = usize::MAX;
 
-impl<T> List<T> {
+impl<T: Default> List<T> {
     pub fn new() -> Self {
         Self {
             head: NIL,
@@ -86,6 +88,48 @@ impl<T> List<T> {
         }
     }
 
+    pub fn pop_front(&mut self) -> Option<T> {
+        let old_head = self.head;
+
+        if old_head == NIL {
+            return None;
+        }
+
+        let sentinel = Node::new(T::default());
+        let node = mem::replace(&mut self.nodes[old_head], sentinel);
+
+        self.recycled.push(old_head);
+
+        self.head = node.next;
+
+        if node.next == NIL {
+            self.tail = NIL;
+        }
+
+        Some(node.elem)
+    }
+
+    pub fn pop_back(&mut self) -> Option<T> {
+        let old_tail = self.tail;
+
+        if old_tail == NIL {
+            return None;
+        }
+
+        let sentinel = Node::new(T::default());
+        let node = mem::replace(&mut self.nodes[old_tail], sentinel);
+
+        self.recycled.push(old_tail);
+
+        self.tail = node.prev;
+
+        if node.prev == NIL {
+            self.head = NIL;
+        }
+
+        Some(node.elem)
+    }
+
     pub fn iter(&self) -> ListIterator<T> {
         ListIterator {
             nodes: self.nodes.as_slice(),
@@ -94,13 +138,13 @@ impl<T> List<T> {
     }
 }
 
-impl<T> Default for List<T> {
+impl<T: Default> Default for List<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<'n, T> IntoIterator for &'n List<T> {
+impl<'n, T: Default> IntoIterator for &'n List<T> {
     type Item = &'n T;
     type IntoIter = ListIterator<'n, T>;
     fn into_iter(self) -> Self::IntoIter {
@@ -144,10 +188,8 @@ mod tests {
 
         list.push_front(1);
         assert_eq!(list.front(), Some(&1));
-
         list.push_front(2);
         assert_eq!(list.front(), Some(&2));
-
         list.push_front(3);
         assert_eq!(list.front(), Some(&3));
 
@@ -163,15 +205,45 @@ mod tests {
 
         list.push_back(1);
         assert_eq!(list.back(), Some(&1));
-
         list.push_back(2);
         assert_eq!(list.back(), Some(&2));
-
         list.push_back(3);
         assert_eq!(list.back(), Some(&3));
 
         let collection = list.iter().map(|elem| *elem).collect::<Vec<_>>();
         assert_eq!(collection, vec![1, 2, 3]);
+    }
+
+    #[test]
+    fn pop_front() {
+        let mut list = List::new();
+
+        assert_eq!(list.pop_front(), None);
+
+        list.push_front(1);
+        assert_eq!(list.pop_front(), Some(1));
+        list.push_front(2);
+        assert_eq!(list.pop_front(), Some(2));
+        list.push_front(3);
+        assert_eq!(list.pop_front(), Some(3));
+
+        assert_eq!(list.iter().next(), None);
+    }
+
+    #[test]
+    fn pop_back() {
+        let mut list = List::new();
+
+        assert_eq!(list.pop_back(), None);
+
+        list.push_back(1);
+        assert_eq!(list.pop_back(), Some(1));
+        list.push_back(2);
+        assert_eq!(list.pop_back(), Some(2));
+        list.push_back(3);
+        assert_eq!(list.pop_back(), Some(3));
+
+        assert_eq!(list.iter().next(), None);
     }
 
     #[test]
@@ -181,5 +253,28 @@ mod tests {
         for i in 0..1000000 {
             list.push_back(i);
         }
+    }
+
+    #[test]
+    fn recycle() {
+        let mut list = List::new();
+
+        list.push_back(1);
+        list.push_back(2);
+        list.push_back(3);
+        list.push_back(4);
+        list.push_back(5);
+
+        assert_eq!(list.pop_front(), Some(1));
+        assert_eq!(list.pop_front(), Some(2));
+
+        list.push_back(6);
+        list.push_back(7);
+
+        let iter = list.iter().map(|elem| *elem).collect::<Vec<_>>();
+        let data = list.nodes.iter().map(|node| node.elem).collect::<Vec<_>>();
+
+        assert_eq!(iter, vec![3, 4, 5, 6, 7]);
+        assert_eq!(data, vec![7, 6, 3, 4, 5]);
     }
 }
