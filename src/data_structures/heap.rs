@@ -1,7 +1,5 @@
 #![allow(clippy::module_name_repetitions)]
 
-use std::mem;
-
 #[derive(Debug)]
 pub struct BorrowingHeap<'d, T>
 where

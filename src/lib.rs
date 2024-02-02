@@ -1,5 +1,4 @@
 #![allow(dead_code)]
-#![allow(unused_imports)]
 #![allow(
     clippy::similar_names,
     clippy::many_single_char_names,

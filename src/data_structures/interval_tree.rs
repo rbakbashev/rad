@@ -1,4 +1,4 @@
-use std::cmp::{max, Ordering};
+use std::cmp::max;
 use std::fmt::Display;
 
 struct Node<T> {
