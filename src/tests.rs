@@ -2,8 +2,11 @@ use std::collections::HashMap;
 
 use crate::rand::Wyhash64RNG;
 
+const TEST_ARRAY_LEN: usize = 1000;
+const RAND_SEED: u64 = 123;
+
 pub fn test_sort(f: fn(&mut [u64])) {
-    let len = 1000;
+    let len = TEST_ARRAY_LEN;
     let id = generate_array_identical(len, 1);
     let asc = generate_array_ascending(len);
     let desc = generate_array_descending(len);
@@ -39,7 +42,7 @@ fn generate_array_descending<T: From<u64>>(n: usize) -> Vec<T> {
 
 fn generate_array_random(n: usize, lower: u64, upper: u64) -> Vec<u64> {
     let mut v = Vec::with_capacity(n);
-    let mut r = Wyhash64RNG::new();
+    let mut r = Wyhash64RNG::from_seed(RAND_SEED);
 
     for _ in 0..n {
         v.push(r.gen_in_range(lower..upper));
@@ -55,7 +58,7 @@ fn generate_array_permuation<T: From<u64> + Copy>(n: usize) -> Vec<T> {
 }
 
 fn permute<T: Copy>(v: &mut [T]) {
-    let mut r = Wyhash64RNG::new();
+    let mut r = Wyhash64RNG::from_seed(RAND_SEED);
 
     for i in 0..v.len() {
         let j = r.gen_in_range(0..v.len() as u64) as usize;
