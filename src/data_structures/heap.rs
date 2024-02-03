@@ -1,10 +1,4 @@
-#![allow(clippy::module_name_repetitions)]
-
-#[derive(Debug)]
-pub struct BorrowingHeap<'d, T>
-where
-    T: Ord,
-{
+pub struct BorrowingHeap<'d, T: Ord> {
     len: usize,
     data: &'d mut [T],
 }

@@ -1,6 +1,6 @@
 use crate::data_structures::heap::BorrowingHeap;
 
-pub fn heap_sort<T: Ord + Copy + std::fmt::Debug>(a: &mut [T]) {
+pub fn heap_sort<T: Ord + Copy>(a: &mut [T]) {
     let h = BorrowingHeap::from_slice(a);
     h.sort();
 }
