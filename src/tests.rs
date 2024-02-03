@@ -58,12 +58,13 @@ fn generate_array_permuation<T: From<u64>>(n: usize) -> Vec<T> {
 }
 
 fn permute<T>(v: &mut [T]) {
+    let n = v.len() as u64;
     let mut r = Wyhash64RNG::from_seed(RAND_SEED);
 
-    for i in 0..v.len() {
-        let j = r.gen_in_range(0..v.len() as u64) as usize;
+    for i in 0..n {
+        let j = r.gen_in_range(i..n) as usize;
 
-        v.swap(i, j);
+        v.swap(i as usize, j);
     }
 }
 
