@@ -6,18 +6,23 @@ const TEST_ARRAY_LEN: usize = 1000;
 const RAND_SEED: u64 = 123;
 
 pub fn test_sort(f: fn(&mut [u64])) {
-    let len = TEST_ARRAY_LEN;
-    let id = generate_array_identical(len, 1);
-    let asc = generate_array_ascending(len);
-    let desc = generate_array_descending(len);
-    let rand = generate_array_random(len, 1, len as u64);
-    let perm = generate_array_permuation(len);
+    let [id, asc, desc, rand, perm] = generate_test_arrays(TEST_ARRAY_LEN);
 
     test_sort_single(f, id);
     test_sort_single(f, asc);
     test_sort_single(f, desc);
     test_sort_single(f, rand);
     test_sort_single(f, perm);
+}
+
+pub fn generate_test_arrays(n: usize) -> [Vec<u64>; 5] {
+    let id = generate_array_identical(n, 1);
+    let asc = generate_array_ascending(n);
+    let desc = generate_array_descending(n);
+    let rand = generate_array_random(n, 1, n as u64);
+    let perm = generate_array_permuation(n);
+
+    [id, asc, desc, rand, perm]
 }
 
 fn generate_array_identical<T: Copy>(n: usize, x: T) -> Vec<T> {

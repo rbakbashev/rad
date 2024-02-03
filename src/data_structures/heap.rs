@@ -66,3 +66,32 @@ fn left_child(i: usize) -> usize {
 fn right_child(i: usize) -> usize {
     2 * i + 1
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn parent(i: usize) -> usize {
+        i / 2
+    }
+
+    fn test_single(mut a: Vec<u64>) {
+        let heap = BorrowingHeap::from_slice(&mut a);
+
+        for i in 1..heap.data.len() {
+            assert!(heap.data[parent(i)] >= heap.data[i]);
+        }
+    }
+
+    #[test]
+    fn heap_property() {
+        let len = 1000;
+        let [id, asc, desc, rand, perm] = crate::tests::generate_test_arrays(len);
+
+        test_single(id);
+        test_single(asc);
+        test_single(desc);
+        test_single(rand);
+        test_single(perm);
+    }
+}
