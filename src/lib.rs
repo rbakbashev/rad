@@ -4,6 +4,7 @@
     clippy::many_single_char_names,
     clippy::uninlined_format_args,
     clippy::must_use_candidate,
+    clippy::module_name_repetitions,
     clippy::missing_const_for_fn
 )]
 
