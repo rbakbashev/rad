@@ -51,13 +51,13 @@ fn generate_array_random(n: usize, lower: u64, upper: u64) -> Vec<u64> {
     v
 }
 
-fn generate_array_permuation<T: From<u64> + Copy>(n: usize) -> Vec<T> {
+fn generate_array_permuation<T: From<u64>>(n: usize) -> Vec<T> {
     let mut v = generate_array_ascending(n);
     permute(&mut v);
     v
 }
 
-fn permute<T: Copy>(v: &mut [T]) {
+fn permute<T>(v: &mut [T]) {
     let mut r = Wyhash64RNG::from_seed(RAND_SEED);
 
     for i in 0..v.len() {

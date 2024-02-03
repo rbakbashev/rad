@@ -24,7 +24,7 @@ impl<T> Node<T> {
     }
 }
 
-impl<T: Ord + Copy + fmt::Display> AvlTree<T> {
+impl<T: Ord + fmt::Display> AvlTree<T> {
     pub fn new() -> Self {
         Self {
             root: usize::MAX,
@@ -168,13 +168,13 @@ impl<T: Ord + Copy + fmt::Display> AvlTree<T> {
     }
 }
 
-impl<T: Ord + Copy + fmt::Display> Default for AvlTree<T> {
+impl<T: Ord + fmt::Display> Default for AvlTree<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T: Ord + Copy + fmt::Display> fmt::Display for AvlTree<T> {
+impl<T: Ord + fmt::Display> fmt::Display for AvlTree<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.print_node(f, self.root, "", "")
     }
