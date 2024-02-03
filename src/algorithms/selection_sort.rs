@@ -1,4 +1,4 @@
-fn selection_sort<T: PartialOrd>(a: &mut [T]) {
+pub fn selection_sort<T: PartialOrd>(a: &mut [T]) {
     for i in 0..a.len() - 1 {
         let mut smallest = i;
 

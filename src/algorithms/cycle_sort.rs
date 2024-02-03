@@ -1,7 +1,7 @@
 use std::mem::swap;
 
 #[allow(clippy::needless_range_loop)]
-fn cycle_sort<T: PartialOrd + Copy>(arr: &mut [T]) {
+pub fn cycle_sort<T: PartialOrd + Copy>(arr: &mut [T]) {
     let n = arr.len();
 
     for lo in 0..n - 1 {

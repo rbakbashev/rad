@@ -1,4 +1,4 @@
-fn insertion_sort<T: PartialOrd + Copy>(a: &mut [T]) {
+pub fn insertion_sort<T: PartialOrd + Copy>(a: &mut [T]) {
     for j in 2..=a.len() {
         let key = a[j - 1];
         let mut i = j - 1;
@@ -13,7 +13,7 @@ fn insertion_sort<T: PartialOrd + Copy>(a: &mut [T]) {
 }
 
 // Same as above except uses 0-indexing
-fn insertion_sort_2<T: PartialOrd + Copy>(a: &mut [T]) {
+pub fn insertion_sort_2<T: PartialOrd + Copy>(a: &mut [T]) {
     'outer: for j in 1..a.len() {
         let key = a[j];
         let mut i = j - 1;

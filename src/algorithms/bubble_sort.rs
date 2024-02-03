@@ -1,4 +1,4 @@
-fn bubble_sort<T: PartialOrd>(a: &mut [T]) {
+pub fn bubble_sort<T: PartialOrd>(a: &mut [T]) {
     for i in 0..a.len() - 1 {
         for j in ((i + 1)..a.len()).rev() {
             if a[j] < a[j - 1] {

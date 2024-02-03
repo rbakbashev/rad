@@ -4,7 +4,7 @@
 use std::cmp::{max, min};
 
 #[derive(Clone, Debug, PartialEq)]
-enum Diet {
+pub enum Diet {
     Empty,
     Node(i16, i16, Box<Diet>, Box<Diet>),
 }
@@ -83,7 +83,7 @@ fn join_right(d: &Diet) -> Diet {
     }
 }
 
-fn insert(z: i16, d: &Diet) -> Diet {
+pub fn insert(z: i16, d: &Diet) -> Diet {
     match d {
         Diet::Empty => Diet::Node(z, z, Box::new(Diet::Empty), Box::new(Diet::Empty)),
         Diet::Node(x, y, l, r) => {
@@ -161,7 +161,7 @@ fn no_less_than(d: &Diet, a: i16) -> (Diet, i16) {
 }
 
 #[allow(clippy::option_if_let_else)]
-fn insert_range(px: i16, py: i16, d: &Diet) -> Diet {
+pub fn insert_range(px: i16, py: i16, d: &Diet) -> Diet {
     match d {
         Diet::Empty => Diet::Node(px, py, Box::new(Diet::Empty), Box::new(Diet::Empty)),
         Diet::Node(x, y, ln, rn) => {

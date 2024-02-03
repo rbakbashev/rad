@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 #![allow(
     clippy::similar_names,
     clippy::many_single_char_names,
