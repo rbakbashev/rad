@@ -1,4 +1,8 @@
 pub fn merge_sort<T: Default + Copy + PartialOrd>(a: &mut [T]) {
+    if a.len() <= 1 {
+        return;
+    }
+
     merge_rec(a, 0, a.len() - 1);
 }
 

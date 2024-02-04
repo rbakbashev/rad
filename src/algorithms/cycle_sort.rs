@@ -2,6 +2,10 @@ use std::mem::swap;
 
 #[allow(clippy::needless_range_loop)]
 pub fn cycle_sort<T: PartialOrd + Copy>(arr: &mut [T]) {
+    if arr.len() <= 1 {
+        return;
+    }
+
     let n = arr.len();
 
     for lo in 0..n - 1 {

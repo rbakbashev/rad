@@ -86,8 +86,10 @@ mod tests {
     #[test]
     fn heap_property() {
         let len = 1000;
-        let [id, asc, desc, rand, perm] = crate::tests::generate_test_arrays(len);
+        let [empty, single, id, asc, desc, rand, perm] = crate::tests::generate_test_arrays(len);
 
+        test_single(empty);
+        test_single(single);
         test_single(id);
         test_single(asc);
         test_single(desc);
