@@ -1,5 +1,6 @@
 pub mod bubble_sort;
 pub mod count_inversions;
+pub mod counting_sort;
 pub mod cycle_sort;
 pub mod heap_sort;
 pub mod insertion_sort;

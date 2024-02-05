@@ -5,16 +5,16 @@ use crate::rand::Wyhash64RNG;
 const TEST_ARRAY_LEN: usize = 1000;
 const RAND_SEED: u64 = 123;
 
-pub fn test_sort(f: fn(&mut [u64])) {
+pub fn test_sort(f: impl Fn(&mut [u64])) {
     let [empty, single, id, asc, desc, rand, perm] = generate_test_arrays(TEST_ARRAY_LEN);
 
-    test_sort_single(f, empty);
-    test_sort_single(f, single);
-    test_sort_single(f, id);
-    test_sort_single(f, asc);
-    test_sort_single(f, desc);
-    test_sort_single(f, rand);
-    test_sort_single(f, perm);
+    test_sort_single(&f, empty);
+    test_sort_single(&f, single);
+    test_sort_single(&f, id);
+    test_sort_single(&f, asc);
+    test_sort_single(&f, desc);
+    test_sort_single(&f, rand);
+    test_sort_single(&f, perm);
 }
 
 pub fn generate_test_arrays(n: usize) -> [Vec<u64>; 7] {
@@ -77,7 +77,7 @@ fn permute<T>(v: &mut [T]) {
     }
 }
 
-fn test_sort_single(f: fn(&mut [u64]), mut values: Vec<u64>) {
+fn test_sort_single(f: impl Fn(&mut [u64]), mut values: Vec<u64>) {
     let orig = values.clone();
 
     f(&mut values);
