@@ -1,3 +1,5 @@
+use crate::rand::Wyhash64RNG;
+
 pub fn quicksort<T: PartialOrd>(a: &mut [T]) {
     if a.len() <= 1 {
         return;
@@ -50,8 +52,53 @@ fn partition_hoare<T: PartialOrd>(a: &mut [T], l: usize, h: usize) -> usize {
     }
 }
 
+pub fn randomized_quicksort<T: PartialOrd>(a: &mut [T]) {
+    if a.len() <= 1 {
+        return;
+    }
+
+    let mut rng = Wyhash64RNG::from_seed(123);
+
+    randomized_quicksort_aux(a, &mut rng, 0, a.len() - 1);
+}
+
+fn randomized_quicksort_aux<T: PartialOrd>(a: &mut [T], rng: &mut Wyhash64RNG, l: usize, h: usize) {
+    if l >= h {
+        return;
+    }
+
+    let p = randomized_partition(a, rng, l, h);
+
+    randomized_quicksort_aux(a, rng, l, p);
+    randomized_quicksort_aux(a, rng, p + 1, h);
+}
+
+#[allow(clippy::range_plus_one, clippy::cast_possible_truncation)]
+fn randomized_partition<T: PartialOrd>(
+    a: &mut [T],
+    rng: &mut Wyhash64RNG,
+    l: usize,
+    h: usize,
+) -> usize {
+    let range = (l as u64)..(h as u64);
+    let pivot = rng.gen_in_range(range) as usize;
+
+    a.swap(l, pivot);
+
+    partition_hoare(a, l, h)
+}
+
 #[cfg(test)]
-#[test]
-fn test() {
-    crate::tests::test_sort(quicksort);
+mod tests {
+    use super::*;
+
+    #[test]
+    fn normal() {
+        crate::tests::test_sort(quicksort);
+    }
+
+    #[test]
+    fn randomized() {
+        crate::tests::test_sort(randomized_quicksort);
+    }
 }
