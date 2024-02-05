@@ -32,7 +32,9 @@ pub fn counting_sort_2(xs: &mut [usize]) {
         return;
     }
 
-    let (min, max) = find_min_max(xs);
+    let Some((min, max)) = find_min_max(xs) else {
+        return;
+    };
 
     let range = max - min + 1;
     let mut c = vec![0; range];
@@ -50,20 +52,51 @@ pub fn counting_sort_2(xs: &mut [usize]) {
     }
 }
 
-fn find_min_max<T: PartialOrd + Copy>(xs: &[T]) -> (T, T) {
-    let mut min = xs[0];
-    let mut max = xs[0];
-
-    for &x in xs {
-        if x < min {
-            min = x;
+fn find_min_max<T: PartialOrd + Copy>(xs: &[T]) -> Option<(T, T)> {
+    let (mut min, mut max, offset) = match xs.len() {
+        0 => return None,
+        1 => return Some((xs[0], xs[0])),
+        n if n % 2 == 0 => {
+            let x0 = xs[0];
+            let x1 = xs[1];
+            let off = 2;
+            if x0 < x1 {
+                (x0, x1, off)
+            } else {
+                (x1, x0, off)
+            }
         }
-        if x > max {
-            max = x;
+        _ => (xs[0], xs[0], 1),
+    };
+
+    let skip = &xs[offset..xs.len()];
+
+    for ch in skip.chunks(2) {
+        match ch {
+            [a, b] => {
+                let (nmin, nmax) = if *a < *b { (*a, *b) } else { (*b, *a) };
+
+                if nmin < min {
+                    min = nmin;
+                }
+                if nmax > max {
+                    max = nmax;
+                }
+            }
+            [a] => {
+                let a = *a;
+                if a < min {
+                    min = a;
+                }
+                if a > max {
+                    max = a;
+                }
+            }
+            _ => unreachable!(),
         }
     }
 
-    (min, max)
+    Some((min, max))
 }
 
 #[cfg(test)]
@@ -98,5 +131,24 @@ mod tests {
     #[test]
     fn alternate() {
         single_test(counting_sort_2);
+    }
+
+    #[test]
+    fn min_max() {
+        let len = 1000;
+        let [empty, single, id, asc, desc, rand, perm] = crate::tests::generate_test_arrays(len);
+
+        min_max_single_test(empty);
+        min_max_single_test(single);
+        min_max_single_test(id);
+        min_max_single_test(asc);
+        min_max_single_test(desc);
+        min_max_single_test(rand);
+        min_max_single_test(perm);
+    }
+
+    fn min_max_single_test(a: Vec<u64>) {
+        assert_eq!(find_min_max(&a).map(|t| t.0), a.iter().min().copied());
+        assert_eq!(find_min_max(&a).map(|t| t.1), a.iter().max().copied());
     }
 }
