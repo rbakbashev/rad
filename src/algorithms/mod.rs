@@ -7,4 +7,5 @@ pub mod insertion_sort;
 pub mod max_subarray_sum;
 pub mod merge_sort;
 pub mod quick_sort;
+pub mod radix_sort;
 pub mod selection_sort;
