@@ -1,6 +1,6 @@
 use crate::rand::Wyhash64RNG;
 
-pub fn quicksort<T: PartialOrd>(a: &mut [T]) {
+pub fn quicksort<T: PartialOrd + Copy>(a: &mut [T]) {
     if a.len() <= 1 {
         return;
     }
@@ -8,7 +8,7 @@ pub fn quicksort<T: PartialOrd>(a: &mut [T]) {
     quicksort_aux(a, 0, a.len() - 1);
 }
 
-fn quicksort_aux<T: PartialOrd>(a: &mut [T], l: usize, h: usize) {
+fn quicksort_aux<T: PartialOrd + Copy>(a: &mut [T], l: usize, h: usize) {
     if l >= h {
         return;
     }
@@ -19,19 +19,21 @@ fn quicksort_aux<T: PartialOrd>(a: &mut [T], l: usize, h: usize) {
     quicksort_aux(a, p + 1, h);
 }
 
-fn partition_hoare<T: PartialOrd>(a: &mut [T], l: usize, h: usize) -> usize {
+fn partition_hoare<T: PartialOrd + Copy>(a: &mut [T], l: usize, h: usize) -> usize {
     let mut ineg = l == 0;
     let mut i = if ineg { l } else { l - 1 };
     let mut j = h + 1;
+    let pivot = a[l];
 
     loop {
         loop {
-            if !ineg {
+            if ineg {
                 ineg = false;
+            } else {
                 i += 1;
             }
 
-            if a[i] >= a[l] {
+            if a[i] >= pivot {
                 break;
             }
         }
@@ -39,7 +41,7 @@ fn partition_hoare<T: PartialOrd>(a: &mut [T], l: usize, h: usize) -> usize {
         loop {
             j -= 1;
 
-            if a[j] <= a[l] {
+            if a[j] <= pivot {
                 break;
             }
         }
@@ -52,7 +54,7 @@ fn partition_hoare<T: PartialOrd>(a: &mut [T], l: usize, h: usize) -> usize {
     }
 }
 
-pub fn randomized_quicksort<T: PartialOrd>(a: &mut [T]) {
+pub fn randomized_quicksort<T: PartialOrd + Copy>(a: &mut [T]) {
     if a.len() <= 1 {
         return;
     }
@@ -62,7 +64,12 @@ pub fn randomized_quicksort<T: PartialOrd>(a: &mut [T]) {
     randomized_quicksort_aux(a, &mut rng, 0, a.len() - 1);
 }
 
-fn randomized_quicksort_aux<T: PartialOrd>(a: &mut [T], rng: &mut Wyhash64RNG, l: usize, h: usize) {
+fn randomized_quicksort_aux<T: PartialOrd + Copy>(
+    a: &mut [T],
+    rng: &mut Wyhash64RNG,
+    l: usize,
+    h: usize,
+) {
     if l >= h {
         return;
     }
@@ -74,7 +81,7 @@ fn randomized_quicksort_aux<T: PartialOrd>(a: &mut [T], rng: &mut Wyhash64RNG, l
 }
 
 #[allow(clippy::range_plus_one, clippy::cast_possible_truncation)]
-fn randomized_partition<T: PartialOrd>(
+fn randomized_partition<T: PartialOrd + Copy>(
     a: &mut [T],
     rng: &mut Wyhash64RNG,
     l: usize,
