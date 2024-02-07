@@ -1,6 +1,6 @@
 use crate::algorithms::insertion_sort::insertion_sort;
 
-pub fn select<T: Ord + Copy + Default>(a: &mut [T], k: usize) -> Option<T> {
+pub fn select<T: PartialOrd + Copy>(a: &mut [T], k: usize) -> Option<T> {
     if a.is_empty() {
         return None;
     }
@@ -8,7 +8,7 @@ pub fn select<T: Ord + Copy + Default>(a: &mut [T], k: usize) -> Option<T> {
     select_aux(a, 0, a.len() - 1, k)
 }
 
-fn select_aux<T: Ord + Copy + Default>(a: &mut [T], l: usize, h: usize, k: usize) -> Option<T> {
+fn select_aux<T: PartialOrd + Copy>(a: &mut [T], l: usize, h: usize, k: usize) -> Option<T> {
     let n = h - l + 1;
 
     if k == 0 || k > n {
@@ -99,7 +99,7 @@ mod tests {
         assert_eq!(naive, check);
     }
 
-    fn select_naive<T: Ord + Copy + Default>(a: &[T], k: usize) -> Option<T> {
+    fn select_naive<T: Ord + Copy>(a: &[T], k: usize) -> Option<T> {
         let mut copy = a.to_vec();
         copy.sort_unstable();
         copy.get(k - 1).map(|x| *x)
