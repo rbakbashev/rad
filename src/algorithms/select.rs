@@ -75,21 +75,19 @@ fn partition_lomuto<T: PartialOrd + Copy>(a: &mut [T], l: usize, h: usize, pivot
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tests::generate_test_arrays;
+    use crate::tests;
 
     #[test]
     fn test() {
         let len = 10;
-        let [empty, single, id, asc, desc, _rand, perm] = generate_test_arrays(len);
         let ks = [1, 2, len / 3, len / 2, len * 2 / 3, len - 1, len];
+        let arrays = tests::generate_test_arrays(len);
 
         for k in ks {
-            single_test(&empty, k);
-            single_test(&single, k);
-            single_test(&id, k);
-            single_test(&asc, k);
-            single_test(&desc, k);
-            single_test(&perm, k);
+            for (desc, arr) in &arrays {
+                println!("Array: {}", desc);
+                single_test(&arr, k);
+            }
         }
     }
 

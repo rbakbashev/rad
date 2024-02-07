@@ -6,31 +6,25 @@ const TEST_ARRAY_LEN: usize = 1000;
 const RAND_SEED: u64 = 123;
 
 pub fn test_sort(f: impl Fn(&mut [u64])) {
-    let [empty, single, id, asc, desc, rand, perm] = generate_test_arrays(TEST_ARRAY_LEN);
+    let arrays = generate_test_arrays(TEST_ARRAY_LEN);
 
-    test_sort_single(&f, empty);
-    test_sort_single(&f, single);
-    test_sort_single(&f, id);
-    test_sort_single(&f, asc);
-    test_sort_single(&f, desc);
-    test_sort_single(&f, rand);
-    test_sort_single(&f, perm);
+    for (desc, arr) in arrays {
+        println!("Array: {}", desc);
+        test_sort_single(&f, arr);
+    }
 }
 
-pub fn generate_test_arrays(n: usize) -> [Vec<u64>; 7] {
-    let empty = vec![];
-    let single = vec![1];
-    let id = generate_array_identical(n, 1);
-    let asc = generate_array_ascending(n);
-    let desc = generate_array_descending(n);
-    let rand = generate_array_random(n, 1, n as u64);
-    let perm = generate_array_permuation(n);
-
-    [empty, single, id, asc, desc, rand, perm]
-}
-
-fn generate_array_identical<T: Copy>(n: usize, x: T) -> Vec<T> {
-    vec![x; n]
+pub fn generate_test_arrays(n: usize) -> Vec<(&'static str, Vec<u64>)> {
+    vec![
+        ("empty", vec![]),
+        ("single", vec![1]),
+        ("pair", vec![1; 2]),
+        ("id", vec![1; n]),
+        ("asc", generate_array_ascending(n)),
+        ("desc", generate_array_descending(n)),
+        ("rand", generate_array_random(n, 1, n as u64)),
+        ("perm", generate_array_permuation(n)),
+    ]
 }
 
 fn generate_array_ascending<T: From<u64>>(n: usize) -> Vec<T> {

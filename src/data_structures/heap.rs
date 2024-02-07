@@ -70,6 +70,7 @@ fn right_child(i: usize) -> usize {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tests;
 
     fn parent(i: usize) -> usize {
         i / 2
@@ -86,14 +87,11 @@ mod tests {
     #[test]
     fn heap_property() {
         let len = 1000;
-        let [empty, single, id, asc, desc, rand, perm] = crate::tests::generate_test_arrays(len);
+        let arrays = tests::generate_test_arrays(len);
 
-        test_single(empty);
-        test_single(single);
-        test_single(id);
-        test_single(asc);
-        test_single(desc);
-        test_single(rand);
-        test_single(perm);
+        for (desc, arr) in arrays {
+            println!("Array: {}", desc);
+            test_single(arr);
+        }
     }
 }

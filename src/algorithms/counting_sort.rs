@@ -102,6 +102,7 @@ fn find_min_max<T: PartialOrd + Copy>(xs: &[T]) -> Option<(T, T)> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tests;
 
     fn single_test(f: fn(&mut [usize])) {
         let wrap = move |a: &mut [u64]| {
@@ -136,15 +137,12 @@ mod tests {
     #[test]
     fn min_max() {
         let len = 1000;
-        let [empty, single, id, asc, desc, rand, perm] = crate::tests::generate_test_arrays(len);
+        let arrays = tests::generate_test_arrays(len);
 
-        min_max_single_test(empty);
-        min_max_single_test(single);
-        min_max_single_test(id);
-        min_max_single_test(asc);
-        min_max_single_test(desc);
-        min_max_single_test(rand);
-        min_max_single_test(perm);
+        for (desc, arr) in arrays {
+            println!("Array: {}", desc);
+            min_max_single_test(arr);
+        }
     }
 
     fn min_max_single_test(a: Vec<u64>) {
