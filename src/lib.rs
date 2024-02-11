@@ -1,10 +1,11 @@
 #![allow(
-    clippy::similar_names,
     clippy::many_single_char_names,
-    clippy::uninlined_format_args,
-    clippy::must_use_candidate,
+    clippy::missing_const_for_fn,
+    clippy::missing_panics_doc,
     clippy::module_name_repetitions,
-    clippy::missing_const_for_fn
+    clippy::must_use_candidate,
+    clippy::similar_names,
+    clippy::uninlined_format_args
 )]
 
 pub mod algorithms;
