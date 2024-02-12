@@ -183,6 +183,47 @@ fn recontruct_lcs(w: &mut Vec<u8>, b: &Array2D<Direction>, xs: &[u8], x: usize, 
     }
 }
 
+pub fn longest_increasing_subsequence(a: &[u64]) -> Vec<u64> {
+    let n = a.len();
+    let mut m = vec![0; n + 1];
+    let mut p = vec![None; n + 1];
+
+    for i in 0..n {
+        m[i] = 1;
+
+        for j in 0..i {
+            let q = 1 + m[j];
+
+            if a[j] < a[i] && q > m[i] {
+                m[i] = q;
+                p[i] = Some(j);
+            }
+        }
+    }
+
+    let mut max = m[0];
+    let mut idx = 0;
+
+    for (i, el) in m.iter().enumerate() {
+        if *el > max {
+            max = *el;
+            idx = i;
+        }
+    }
+
+    let mut idx = Some(idx);
+    let mut subs = vec![];
+
+    while let Some(i) = idx {
+        subs.push(a[i]);
+        idx = p[i];
+    }
+
+    subs.reverse();
+
+    subs
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -235,5 +276,16 @@ mod tests {
         let s2 = b"GTCGTTCGGAATGCCGTTGCTCTGTAAA";
         let lcs = b"GTCGTCGGAAGCCGGCCGAA";
         assert_eq!(lcs.to_vec(), longest_common_subsequence(s1, s2));
+    }
+
+    #[test]
+    fn longest_increasing_subsequence_test() {
+        let xs = [8, 3, 4, 6, 5, 2, 0, 7, 9, 1];
+        let lis = [3, 4, 6, 7, 9];
+        assert_eq!(lis.to_vec(), longest_increasing_subsequence(&xs));
+
+        let xs = [8, 1, 2, 6, 5, 7, 3, 9, 4, 10];
+        let lis = [1, 2, 6, 7, 9, 10];
+        assert_eq!(lis.to_vec(), longest_increasing_subsequence(&xs));
     }
 }
