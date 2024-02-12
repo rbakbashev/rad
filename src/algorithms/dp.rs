@@ -162,23 +162,23 @@ pub fn longest_common_subsequence(xs: &[u8], ys: &[u8]) -> Vec<u8> {
     }
 
     let mut w = vec![];
-    recontruct_lcs(&mut w, &b, xs, xl, yl);
+    reconstruct_lcs(&mut w, &b, xs, xl, yl);
     w.reverse();
     w
 }
 
-fn recontruct_lcs(w: &mut Vec<u8>, b: &Array2D<Direction>, xs: &[u8], x: usize, y: usize) {
+fn reconstruct_lcs(w: &mut Vec<u8>, b: &Array2D<Direction>, xs: &[u8], x: usize, y: usize) {
     if x == 0 || y == 0 {
         return;
     }
 
     match b[y][x] {
         Direction::Unset => panic!("direction should be set"),
-        Direction::Up => recontruct_lcs(w, b, xs, x, y - 1),
-        Direction::Left => recontruct_lcs(w, b, xs, x - 1, y),
+        Direction::Up => reconstruct_lcs(w, b, xs, x, y - 1),
+        Direction::Left => reconstruct_lcs(w, b, xs, x - 1, y),
         Direction::UpLeft => {
             w.push(xs[x - 1]);
-            recontruct_lcs(w, b, xs, x - 1, y - 1);
+            reconstruct_lcs(w, b, xs, x - 1, y - 1);
         }
     }
 }
@@ -267,6 +267,96 @@ pub fn longest_increasing_subsequence_2(xs: &[usize]) -> Vec<usize> {
     subs
 }
 
+#[derive(Clone, Copy, PartialEq)]
+enum PalDirection {
+    End,
+    Char(u8),
+    Left,
+    Right,
+}
+
+pub fn longest_palindrome_subsequence(a: &[u8]) -> Vec<u8> {
+    let n = a.len();
+    let mut m = Array2D::new(0, n, n + 1);
+    let mut b = Array2D::new(PalDirection::End, n, n + 1);
+
+    for (s, a) in a.iter().enumerate() {
+        m[1][s] = 1;
+        b[1][s] = PalDirection::Char(*a);
+    }
+
+    for l in 2..=n {
+        let mut s = 0;
+
+        while s + l <= n {
+            if a[s] == a[s + l - 1] {
+                m[l][s] = 2 + m[l - 2][s + 1];
+                b[l][s] = PalDirection::Char(a[s]);
+            } else {
+                let ll = m[l - 1][s];
+                let lr = m[l - 1][s + 1];
+
+                if ll > lr {
+                    m[l][s] = ll;
+                    b[l][s] = PalDirection::Left;
+                } else {
+                    m[l][s] = lr;
+                    b[l][s] = PalDirection::Right;
+                }
+            }
+
+            s += 1;
+        }
+    }
+
+    reconstruct_lps(&m, &b, n)
+}
+
+fn reconstruct_lps(m: &Array2D<usize>, b: &Array2D<PalDirection>, n: usize) -> Vec<u8> {
+    let len = m[n][0];
+
+    let mut o = Vec::with_capacity(len);
+    let mut s = 0;
+    let mut l = n;
+
+    loop {
+        match b[l][s] {
+            PalDirection::End => break,
+            PalDirection::Char(c) => {
+                o.push(c);
+                s += 1;
+
+                if l < 2 {
+                    break;
+                }
+
+                l -= 2;
+            }
+            PalDirection::Left => {
+                l -= 1;
+            }
+            PalDirection::Right => {
+                s += 1;
+                l -= 1;
+            }
+        }
+    }
+
+    let mut i = len / 2 - 1;
+
+    while o.len() != len {
+        o.push(o[i]);
+
+        if i == 0 {
+            break;
+        }
+
+        i -= 1;
+    }
+
+    o
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -308,38 +398,49 @@ mod tests {
         let s1 = b"springtime";
         let s2 = b"pioneer";
         let lcs = b"pine";
-        assert_eq!(lcs.to_vec(), longest_common_subsequence(s1, s2));
+        assert_eq!(lcs, longest_common_subsequence(s1, s2).as_slice());
 
         let s1 = b"abcbdab";
         let s2 = b"bdcaba";
         let lcs = b"bdab";
-        assert_eq!(lcs.to_vec(), longest_common_subsequence(s1, s2));
+        assert_eq!(lcs, longest_common_subsequence(s1, s2).as_slice());
 
         let s1 = b"ACCGGTCGAGTGCGCGGAAGCCGGCCGAA";
         let s2 = b"GTCGTTCGGAATGCCGTTGCTCTGTAAA";
         let lcs = b"GTCGTCGGAAGCCGGCCGAA";
-        assert_eq!(lcs.to_vec(), longest_common_subsequence(s1, s2));
+        assert_eq!(lcs, longest_common_subsequence(s1, s2).as_slice());
     }
 
     #[test]
     fn longest_increasing_subsequence_test() {
         let xs = [8, 3, 4, 6, 5, 2, 0, 7, 9, 1];
         let lis = [3, 4, 6, 7, 9];
-        assert_eq!(lis.to_vec(), longest_increasing_subsequence(&xs));
+        assert_eq!(lis, longest_increasing_subsequence(&xs).as_slice());
 
         let xs = [8, 1, 2, 6, 5, 7, 3, 9, 4, 10];
         let lis = [1, 2, 6, 7, 9, 10];
-        assert_eq!(lis.to_vec(), longest_increasing_subsequence(&xs));
+        assert_eq!(lis, longest_increasing_subsequence(&xs).as_slice());
     }
 
     #[test]
     fn longest_increasing_subsequence_2_test() {
         let xs = [8, 3, 4, 6, 5, 2, 0, 7, 9, 1];
         let lis = [3, 4, 5, 7, 9];
-        assert_eq!(lis.to_vec(), longest_increasing_subsequence_2(&xs));
+        assert_eq!(lis, longest_increasing_subsequence_2(&xs).as_slice());
 
         let xs = [8, 1, 2, 6, 5, 7, 3, 9, 4, 10];
         let lis = [1, 2, 5, 7, 9, 10];
-        assert_eq!(lis.to_vec(), longest_increasing_subsequence_2(&xs));
+        assert_eq!(lis, longest_increasing_subsequence_2(&xs).as_slice());
+    }
+
+    #[test]
+    fn longest_palindrome_subsequence_test() {
+        let tst = b"character";
+        let ans = b"carac";
+        assert_eq!(ans, longest_palindrome_subsequence(tst).as_slice());
+
+        let tst = b"xdRAfdfCECA123R_";
+        let ans = b"RACECAR";
+        assert_eq!(ans, longest_palindrome_subsequence(tst).as_slice());
     }
 }
