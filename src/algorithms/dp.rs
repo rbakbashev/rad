@@ -107,6 +107,7 @@ pub fn matrix_parenthesization(dimensions: &[u64]) -> String {
     }
 
     let mut output = String::new();
+
     print_parenthesization(&mut output, &s, 1, n).expect("failed to print parenthesization");
 
     output
@@ -130,12 +131,64 @@ fn print_parenthesization<W: fmt::Write>(
     write!(f, ")")
 }
 
+#[derive(Clone, Copy)]
+enum Direction {
+    Unset,
+    Up,
+    Left,
+    UpLeft,
+}
+
+pub fn longest_common_subsequence(xs: &[u8], ys: &[u8]) -> Vec<u8> {
+    let xl = xs.len();
+    let yl = ys.len();
+
+    let mut c = Array2D::new(0, xl + 1, yl + 1);
+    let mut b = Array2D::new(Direction::Unset, xl + 1, yl + 1);
+
+    for x in 1..=xl {
+        for y in 1..=yl {
+            if xs[x - 1] == ys[y - 1] {
+                c[y][x] = 1 + c[y - 1][x - 1];
+                b[y][x] = Direction::UpLeft;
+            } else if c[y - 1][x] >= c[y][x - 1] {
+                c[y][x] = c[y - 1][x];
+                b[y][x] = Direction::Up;
+            } else {
+                c[y][x] = c[y][x - 1];
+                b[y][x] = Direction::Left;
+            }
+        }
+    }
+
+    let mut w = vec![];
+    recontruct_lcs(&mut w, &b, xs, xl, yl);
+    w.reverse();
+    w
+}
+
+fn recontruct_lcs(w: &mut Vec<u8>, b: &Array2D<Direction>, xs: &[u8], x: usize, y: usize) {
+    if x == 0 || y == 0 {
+        return;
+    }
+
+    match b[y][x] {
+        Direction::Unset => panic!("direction should be set"),
+        Direction::Up => recontruct_lcs(w, b, xs, x, y - 1),
+        Direction::Left => recontruct_lcs(w, b, xs, x - 1, y),
+        Direction::UpLeft => {
+            w.push(xs[x - 1]);
+            recontruct_lcs(w, b, xs, x - 1, y - 1);
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn rod_cutting() {
+    fn rod_cutting_test() {
         let prices = [0, 1, 5, 8, 9, 10, 17, 17, 20, 24, 30];
 
         assert_eq!((30, vec![10]), rod_cutting_extended(&prices, 10));
@@ -164,5 +217,23 @@ mod tests {
         let p = matrix_parenthesization(&dimensions);
 
         assert_eq!(p, "((A1(A2A3))((A4A5)A6))");
+    }
+
+    #[test]
+    fn longest_common_subsequence_test() {
+        let s1 = b"springtime";
+        let s2 = b"pioneer";
+        let lcs = b"pine";
+        assert_eq!(lcs.to_vec(), longest_common_subsequence(s1, s2));
+
+        let s1 = b"abcbdab";
+        let s2 = b"bdcaba";
+        let lcs = b"bdab";
+        assert_eq!(lcs.to_vec(), longest_common_subsequence(s1, s2));
+
+        let s1 = b"ACCGGTCGAGTGCGCGGAAGCCGGCCGAA";
+        let s2 = b"GTCGTTCGGAATGCCGTTGCTCTGTAAA";
+        let lcs = b"GTCGTCGGAAGCCGGCCGAA";
+        assert_eq!(lcs.to_vec(), longest_common_subsequence(s1, s2));
     }
 }
