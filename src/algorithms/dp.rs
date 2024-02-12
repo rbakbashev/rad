@@ -224,6 +224,49 @@ pub fn longest_increasing_subsequence(a: &[u64]) -> Vec<u64> {
     subs
 }
 
+pub fn longest_increasing_subsequence_2(xs: &[usize]) -> Vec<usize> {
+    let mut m = vec![0; xs.len() + 1];
+    let mut p = vec![0; xs.len()];
+
+    m[0] = 0;
+
+    let mut len = 0;
+
+    for i in 0..xs.len() {
+        let mut l = 1;
+        let mut h = len + 1;
+
+        while l < h {
+            let mid = l + (h - l) / 2;
+
+            if xs[m[mid]] >= xs[i] {
+                h = mid;
+            } else {
+                l = mid + 1;
+            }
+        }
+
+        p[i] = m[l - 1];
+        m[l] = i;
+
+        if l > len {
+            len = l;
+        }
+    }
+
+    let mut idx = m[len];
+    let mut subs = vec![];
+
+    for _ in 0..len {
+        subs.push(xs[idx]);
+        idx = p[idx];
+    }
+
+    subs.reverse();
+
+    subs
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -287,5 +330,16 @@ mod tests {
         let xs = [8, 1, 2, 6, 5, 7, 3, 9, 4, 10];
         let lis = [1, 2, 6, 7, 9, 10];
         assert_eq!(lis.to_vec(), longest_increasing_subsequence(&xs));
+    }
+
+    #[test]
+    fn longest_increasing_subsequence_2_test() {
+        let xs = [8, 3, 4, 6, 5, 2, 0, 7, 9, 1];
+        let lis = [3, 4, 5, 7, 9];
+        assert_eq!(lis.to_vec(), longest_increasing_subsequence_2(&xs));
+
+        let xs = [8, 1, 2, 6, 5, 7, 3, 9, 4, 10];
+        let lis = [1, 2, 5, 7, 9, 10];
+        assert_eq!(lis.to_vec(), longest_increasing_subsequence_2(&xs));
     }
 }
