@@ -357,6 +357,108 @@ fn reconstruct_lps(m: &Array2D<usize>, b: &Array2D<PalDirection>, n: usize) -> V
     o
 }
 
+#[allow(clippy::cast_possible_wrap)] // CBA
+pub fn printing_neatly(words: &[&'static str], width: isize) -> Vec<String> {
+    let n = words.len();
+    let mut extras = Array2D::new(0, n + 1, n + 1);
+    let mut linecost = Array2D::new(None, n + 1, n + 1);
+    let mut startcost = vec![None; n + 1];
+    let mut pred = vec![0; n + 1];
+
+    for i in 1..=n {
+        extras[i][i] = width - words[i - 1].len() as isize;
+
+        for j in i + 1..=n {
+            extras[i][j] = extras[i][j - 1] - words[j - 1].len() as isize - 1;
+        }
+    }
+
+    for i in 1..=n {
+        for j in i..=n {
+            linecost[i][j] = if extras[i][j] < 0 {
+                None
+            } else if j == n && extras[i][j] >= 0 {
+                Some(0)
+            } else {
+                Some(extras[i][j].pow(3))
+            };
+        }
+    }
+
+    startcost[0] = Some(0);
+
+    for j in 1..=n {
+        startcost[j] = None;
+
+        for i in 1..=j {
+            let Some(prev) = startcost[i - 1] else {
+                continue;
+            };
+            let Some(line) = linecost[i][j] else { continue };
+
+            let cost = prev + line;
+
+            if startcost[j].is_none() || startcost[j].is_some_and(|s| cost < s) {
+                startcost[j] = Some(cost);
+                pred[j] = i;
+            }
+        }
+    }
+
+    let len = number_printed_lines(&pred, n);
+    let mut lines = vec![&words[0..0]; len];
+
+    reconstruct_neat_print(&mut lines, words, &pred, n);
+
+    join_lines(&lines)
+}
+
+fn number_printed_lines(pred: &[usize], j: usize) -> usize {
+    let i = pred[j];
+
+    if i == 1 {
+        1
+    } else {
+        number_printed_lines(pred, i - 1) + 1
+    }
+}
+
+fn reconstruct_neat_print<'w>(
+    lines: &mut [&'w [&str]],
+    words: &'w [&'static str],
+    pred: &[usize],
+    j: usize,
+) -> usize {
+    let i = pred[j];
+
+    let k = if i == 1 {
+        1
+    } else {
+        reconstruct_neat_print(lines, words, pred, i - 1) + 1
+    };
+
+    lines[k - 1] = &words[i - 1..j];
+
+    k
+}
+
+fn join_lines(lines: &[&[&str]]) -> Vec<String> {
+    let mut paragraph = vec![String::new(); lines.len()];
+
+    for (i, line) in lines.iter().enumerate() {
+        let (head, tail) = line.split_at(1);
+
+        paragraph[i].push_str(head[0]);
+
+        for word in tail {
+            paragraph[i].push(' ');
+            paragraph[i].push_str(word);
+        }
+    }
+
+    paragraph
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -442,5 +544,38 @@ mod tests {
         let tst = b"xdRAfdfCECA123R_";
         let ans = b"RACECAR";
         assert_eq!(ans, longest_palindrome_subsequence(tst).as_slice());
+    }
+
+    #[test]
+    #[rustfmt::skip]
+    fn printing_neatly_test() {
+        let words = [
+            "priesthood", "piccolos", "cuisine", "veneers", "enrichment", "bids", "rightest",
+            "endue", "facsimiled", "bareback", "spams", "slice", "atelier", "cuddles", "weekdays",
+            "shibboleth", "introvert", "stooges", "rosebush", "acolytes", "armistice", "bishop",
+            "sect", "plundering", "obstinate", "yearling", "slinks", "megaliths", "handsomer",
+            "chigger", "valve", "outsources", "thralls", "satirical", "aplomb", "cursed",
+            "backpedal", "dunce", "classicist", "butternut", "spurns", "trend", "ensconcing",
+            "torrents", "revive", "mosquitos", "stragglier", "ghost", "nailing", "appending",
+        ];
+
+        let fmt = [
+            "priesthood piccolos cuisine veneers",
+            "enrichment bids rightest endue",
+            "facsimiled bareback spams slice atelier",
+            "cuddles weekdays shibboleth introvert",
+            "stooges rosebush acolytes armistice",
+            "bishop sect plundering obstinate",
+            "yearling slinks megaliths handsomer",
+            "chigger valve outsources thralls",
+            "satirical aplomb cursed backpedal",
+            "dunce classicist butternut spurns trend",
+            "ensconcing torrents revive mosquitos",
+            "stragglier ghost nailing appending",
+        ];
+
+        let ans = printing_neatly(&words, 40);
+
+        assert_eq!(&fmt, ans.as_slice());
     }
 }
