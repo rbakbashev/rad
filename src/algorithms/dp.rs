@@ -459,6 +459,101 @@ fn join_lines(lines: &[&[&str]]) -> Vec<String> {
     paragraph
 }
 
+#[derive(Clone, Copy)]
+pub enum EditOperations {
+    Unset,
+    Copy(char),
+    Replace(char, char),
+    Delete(char),
+    Insert(char),
+    End,
+}
+
+pub fn edit_distance(x: &str, y: &str) -> Vec<EditOperations> {
+    let m = x.len();
+    let n = y.len();
+    let mut d = Array2D::new(0, n + 1, m + 1);
+    let mut p = Array2D::new(EditOperations::Unset, n + 1, m + 1);
+
+    for i in 0..=m {
+        for j in 0..=n {
+            if i == 0 {
+                d[i][j] = j;
+                p[i][j] = EditOperations::End;
+                continue;
+            }
+
+            if j == 0 {
+                d[i][j] = i;
+                p[i][j] = EditOperations::End;
+                continue;
+            }
+
+            let xp = x.as_bytes()[i - 1] as char;
+            let yp = y.as_bytes()[j - 1] as char;
+
+            if xp == yp {
+                d[i][j] = d[i - 1][j - 1];
+                p[i][j] = EditOperations::Copy(xp);
+            } else {
+                let ins = d[i][j - 1];
+                let del = d[i - 1][j];
+                let rep = d[i - 1][j - 1];
+
+                if ins < del && ins < rep {
+                    d[i][j] = 1 + ins;
+                    p[i][j] = EditOperations::Insert(yp);
+                } else if del < ins && del < rep {
+                    d[i][j] = 1 + del;
+                    p[i][j] = EditOperations::Delete(xp);
+                } else {
+                    d[i][j] = 1 + rep;
+                    p[i][j] = EditOperations::Replace(xp, yp);
+                }
+            }
+        }
+    }
+
+    reconstruct_edit_distance(&p, m, n)
+}
+
+fn reconstruct_edit_distance(
+    p: &Array2D<EditOperations>,
+    mut i: usize,
+    mut j: usize,
+) -> Vec<EditOperations> {
+    let mut ops = vec![];
+
+    loop {
+        let op = p[i][j];
+
+        match op {
+            EditOperations::Unset => panic!("edit operation should be set"),
+            EditOperations::Copy(_x) => {
+                i -= 1;
+                j -= 1;
+            }
+            EditOperations::Replace(_x, _y) => {
+                i -= 1;
+                j -= 1;
+            }
+            EditOperations::Delete(_x) => {
+                i -= 1;
+            }
+            EditOperations::Insert(_x) => {
+                j -= 1;
+            }
+            EditOperations::End => break,
+        }
+
+        ops.push(op);
+    }
+
+    ops.reverse();
+
+    ops
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -577,5 +672,13 @@ mod tests {
         let ans = printing_neatly(&words, 40);
 
         assert_eq!(&fmt, ans.as_slice());
+    }
+
+    #[test]
+    fn edit_distance_test() {
+        let x = "algorithm";
+        let y = "altruistic";
+
+        assert_eq!(10, edit_distance(x, y).len());
     }
 }
