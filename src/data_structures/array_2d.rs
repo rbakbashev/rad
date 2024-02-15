@@ -1,3 +1,4 @@
+use std::fmt;
 use std::ops::{Index, IndexMut};
 
 pub struct Array2D<T> {
@@ -58,6 +59,23 @@ impl<T> IndexMut<usize> for Array2D<T> {
     }
 }
 
+impl<T: fmt::Debug> fmt::Debug for Array2D<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut f = f.debug_struct("Array2D");
+
+        f.field("width", &self.width);
+        f.field("height", &self.height);
+
+        for (i, row) in self.data.chunks(self.width).enumerate() {
+            let text = format!("row {}", i + 1);
+
+            f.field(&text, &row);
+        }
+
+        f.finish()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -88,5 +106,18 @@ mod tests {
     fn trait_panic() {
         let arr = Array2D::new(0, 3, 2);
         let _x = arr[2][0];
+    }
+
+    #[test]
+    fn debug() {
+        let mut arr = Array2D::new(0, 3, 2);
+
+        arr[0].clone_from_slice(&[1, 2, 3]);
+        arr[1].clone_from_slice(&[4, 5, 6]);
+
+        let fmt = format!("{:?}", arr);
+        let exp = "Array2D { width: 3, height: 2, row 1: [1, 2, 3], row 2: [4, 5, 6] }";
+
+        assert_eq!(fmt, exp);
     }
 }
