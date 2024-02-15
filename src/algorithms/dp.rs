@@ -554,6 +554,41 @@ fn reconstruct_edit_distance(
     ops
 }
 
+pub fn string_breaking(len: usize, breaks: &[usize]) -> usize {
+    let n = len;
+    let mut s = Array2D::new(Some(0), n + 1, n + 1);
+
+    for i in 1..=n {
+        s[i][i] = Some(1);
+    }
+
+    for l in 2..=n {
+        for i in 1..=n - l + 1 {
+            let j = i + l - 1;
+
+            s[i][j] = None;
+
+            for &b in breaks {
+                let Some(l) = s[i][b] else {
+                    continue;
+                };
+                let Some(r) = s[b + 1][j] else {
+                    continue;
+                };
+
+                let q = l + r + j - i + 1;
+                let m = &mut s[i][j];
+
+                if m.is_none() || m.is_some_and(|m| q < m) {
+                    *m = Some(q);
+                }
+            }
+        }
+    }
+
+    s[1][n].expect("answer should be computed")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -680,5 +715,13 @@ mod tests {
         let y = "altruistic";
 
         assert_eq!(10, edit_distance(x, y).len());
+    }
+
+    #[test]
+    fn string_breaking_test() {
+        let breaks = [2, 8, 10];
+        let len = 20;
+
+        assert_eq!(40, string_breaking(len, &breaks));
     }
 }
