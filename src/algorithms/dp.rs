@@ -589,6 +589,52 @@ pub fn string_breaking(len: usize, breaks: &[usize]) -> usize {
     s[1][n].expect("answer should be computed")
 }
 
+#[derive(Clone, Copy)]
+pub struct Item {
+    value: u32,
+    weight: usize,
+}
+
+pub fn binary_knapsack(items: &[Item], max_weight: usize) -> Vec<Item> {
+    let n = items.len();
+    let mut v = Array2D::new(0, max_weight + 1, n + 1);
+
+    for i in 1..=n {
+        let item = &items[i - 1];
+
+        for w in 1..=max_weight {
+            let prev = v[i - 1][w];
+
+            if item.weight > max_weight {
+                v[i][w] = prev;
+            } else {
+                let this = item.value + v[i - 1][max_weight - item.weight];
+
+                if this > prev {
+                    v[i][w] = this;
+                } else {
+                    v[i][w] = prev;
+                }
+            }
+        }
+    }
+
+    let mut output = vec![];
+    let mut i = n - 1;
+    let mut w = max_weight;
+
+    while i != 0 {
+        if v[i][w] != v[i - 1][w] {
+            output.push(items[i]);
+            w -= items[i].weight;
+        }
+
+        i -= 1;
+    }
+
+    output
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -723,5 +769,28 @@ mod tests {
         let len = 20;
 
         assert_eq!(40, string_breaking(len, &breaks));
+    }
+
+    #[test]
+    fn binary_knapsack_test() {
+        let items = [
+            Item {
+                value: 60,
+                weight: 10,
+            },
+            Item {
+                value: 100,
+                weight: 20,
+            },
+            Item {
+                value: 120,
+                weight: 30,
+            },
+        ];
+        let max_weight = 50;
+        let ans = binary_knapsack(&items, max_weight);
+        let total_value = ans.iter().fold(0, |acc, x| acc + x.value);
+
+        assert_eq!(220, total_value);
     }
 }
