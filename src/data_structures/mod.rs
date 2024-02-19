@@ -3,6 +3,7 @@ pub mod avl_tree;
 pub mod d_ary_heap;
 pub mod diet;
 pub mod doubly_linked_list;
+pub mod fib_heap;
 pub mod heap;
 pub mod interval_tree;
 pub mod linked_list;

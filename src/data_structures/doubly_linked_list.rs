@@ -1,5 +1,7 @@
 use std::ptr;
 
+// NOTE: invariant over T, should use `Option<NonNull<Node<T>>>` or `*const Node<T>` to be covariant
+
 pub struct LinkedList<T> {
     head: *mut Node<T>,
     tail: *mut Node<T>,
