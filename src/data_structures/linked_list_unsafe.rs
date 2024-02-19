@@ -172,29 +172,38 @@ mod tests {
     fn simple() {
         let mut q = Queue::new();
 
+        assert_eq!(None, q.peek());
         assert_eq!(None, q.pop());
 
         q.push(1);
         q.push(2);
+
+        assert_eq!(Some(&2), q.peek());
+
         q.push(3);
 
+        assert_eq!(Some(&3), q.peek());
         assert_eq!(Some(1), q.pop());
         assert_eq!(Some(2), q.pop());
 
         q.push(4);
         q.push(5);
 
+        assert_eq!(Some(&5), q.peek());
         assert_eq!(Some(3), q.pop());
         assert_eq!(Some(4), q.pop());
         assert_eq!(Some(5), q.pop());
         assert_eq!(None, q.pop());
+        assert_eq!(None, q.peek());
 
         q.push(6);
         q.push(7);
 
         assert_eq!(Some(6), q.pop());
+        assert_eq!(Some(&7), q.peek());
         assert_eq!(Some(7), q.pop());
         assert_eq!(None, q.pop());
+        assert_eq!(None, q.peek());
     }
 
     #[test]
@@ -207,12 +216,26 @@ mod tests {
     }
 
     #[test]
-    fn iterators() {
+    fn into_iters() {
         let mut q = Queue::new();
 
         q.push(1);
         q.push(2);
         q.push(3);
+
+        let mut iter = (&q).into_iter();
+
+        assert_eq!(iter.next(), Some(&1));
+        assert_eq!(iter.next(), Some(&2));
+        assert_eq!(iter.next(), Some(&3));
+        assert_eq!(iter.next(), None);
+
+        let mut iter = (&mut q).into_iter();
+
+        assert_eq!(iter.next(), Some(&mut 1));
+        assert_eq!(iter.next(), Some(&mut 2));
+        assert_eq!(iter.next(), Some(&mut 3));
+        assert_eq!(iter.next(), None);
 
         let mut iter = q.into_iter();
 
@@ -220,7 +243,10 @@ mod tests {
         assert_eq!(iter.next(), Some(2));
         assert_eq!(iter.next(), Some(3));
         assert_eq!(iter.next(), None);
+    }
 
+    #[test]
+    fn iters() {
         let mut q = Queue::new();
 
         q.push(1);
