@@ -290,12 +290,43 @@ impl<T: PartialOrd> FibHeap<T> {
             }
         }
     }
+
+    pub fn delete_key(&mut self, key: &T) {
+        let node = self.find(key);
+
+        if !node.is_null() {
+            self.decrease_to_min(node);
+            self.extract_min();
+        }
+    }
+
+    // A special case of decrease_key where results of `.data` comparisons are always "less than".
+    fn decrease_to_min(&mut self, x: *mut Node<T>) {
+        let p = unsafe { (*x).parent };
+
+        if !p.is_null() {
+            self.cut(x, p);
+            self.cascading_cut(p);
+        }
+
+        self.min = x;
+    }
 }
 
 impl<T: PartialOrd + Debug> FibHeap<T> {
     #[allow(unused)]
     fn print_list(&self) {
         Node::print_list(self.min, self.root_list, true);
+    }
+}
+
+impl<T: PartialOrd + Copy> FibHeap<T> {
+    pub fn collect_keys(&self) -> Vec<T> {
+        let mut collection = Vec::new();
+
+        Node::collect_keys(self.min, self.root_list, &mut collection);
+
+        collection
     }
 }
 
@@ -442,6 +473,34 @@ impl<T: Debug> Node<T> {
     }
 }
 
+impl<T: Copy> Node<T> {
+    fn collect_keys(mut x: *mut Self, len: usize, collection: &mut Vec<T>) {
+        if x.is_null() {
+            return;
+        }
+
+        let mut i = 0;
+
+        loop {
+            if i >= len {
+                break;
+            }
+
+            unsafe {
+                let key = (*x).data;
+
+                collection.push(key);
+
+                Self::collect_keys((*x).children, (*x).num_children, collection);
+
+                x = (*x).right;
+            }
+
+            i += 1;
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -545,14 +604,46 @@ mod tests {
         h.insert(7);
 
         assert_eq!(Some(&4), h.minimum());
+        assert_eq!(&[4, 7, 5, 8, 6], h.collect_keys().as_slice());
 
         h.decrease_key(&6, 3);
         assert_eq!(Some(&3), h.minimum());
+        assert_eq!(&[3, 4, 7, 5, 8], h.collect_keys().as_slice());
 
         h.decrease_key(&8, 2);
         assert_eq!(Some(&2), h.minimum());
+        assert_eq!(&[2, 3, 4, 7, 5], h.collect_keys().as_slice());
 
         h.decrease_key(&2, 1);
         assert_eq!(Some(&1), h.minimum());
+        assert_eq!(&[1, 3, 4, 7, 5], h.collect_keys().as_slice());
+    }
+
+    #[test]
+    fn delete() {
+        let mut h = FibHeap::new();
+
+        h.insert(1);
+        h.insert(2);
+        h.insert(3);
+        h.insert(4);
+        h.insert(5);
+
+        assert_eq!(&[1, 5, 4, 3, 2], h.collect_keys().as_slice());
+
+        h.delete_key(&3);
+        assert_eq!(&[1, 2, 4, 5], h.collect_keys().as_slice());
+
+        h.delete_key(&5);
+        assert_eq!(&[1, 2, 4], h.collect_keys().as_slice());
+
+        h.delete_key(&1);
+        assert_eq!(&[2, 4], h.collect_keys().as_slice());
+
+        h.delete_key(&2);
+        assert_eq!(&[4], h.collect_keys().as_slice());
+
+        h.delete_key(&4);
+        assert!(h.collect_keys().is_empty());
     }
 }
