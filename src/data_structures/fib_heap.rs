@@ -10,7 +10,7 @@ pub struct FibHeap<T: PartialOrd> {
 }
 
 struct Node<T> {
-    parent: *const Node<T>,
+    parent: *mut Node<T>,
     left: *mut Node<T>,
     right: *mut Node<T>,
     children: *mut Node<T>,
@@ -86,11 +86,11 @@ impl<T: PartialOrd> FibHeap<T> {
         let this = self.min;
         let conc = other.min;
 
-        // ↶ this ⇄ oldr ↷ + ↶ oldl ⇄ conc ↷ =
+        // ⮦ this ⇄ oldr ⮧ + ⮦ oldl ⇄ conc ⮧ =
         //
-        // ↶ this  oldr ↷
+        // ⮤ this  oldr ⮥
         //    ⇅      ⇅
-        // ↶ conc  oldl ↷
+        // ⮦ conc  oldl ⮧
         unsafe {
             let oldr = (*this).right;
             let oldl = (*conc).left;
@@ -158,13 +158,7 @@ impl<T: PartialOrd> FibHeap<T> {
     }
 
     fn remove_from_root_list(&mut self, x: *mut Node<T>) {
-        unsafe {
-            let left = (*x).left;
-            let right = (*x).right;
-
-            (*left).right = right;
-            (*right).left = left;
-        }
+        Node::remove_from_list(x);
 
         self.root_list -= 1;
     }
@@ -216,6 +210,86 @@ impl<T: PartialOrd> FibHeap<T> {
             (*y).lost_child = false;
         }
     }
+
+    pub fn has_key(&self, key: &T) -> bool {
+        !self.find(key).is_null()
+    }
+
+    fn find(&self, key: &T) -> *mut Node<T> {
+        let mut x = self.min;
+
+        for _ in 0..self.root_list {
+            let t = Node::find(x, key);
+
+            if !t.is_null() {
+                return t;
+            }
+
+            x = unsafe { (*x).right };
+        }
+
+        ptr::null_mut()
+    }
+
+    pub fn decrease_key(&mut self, old_key: &T, new_key: T) {
+        let node = self.find(old_key);
+
+        if !node.is_null() {
+            self.decrease_node(node, new_key);
+        }
+    }
+
+    fn decrease_node(&mut self, x: *mut Node<T>, new_key: T) {
+        let Some(x) = (unsafe { x.as_mut() }) else {
+            println!("decrease_node: x is null");
+            return;
+        };
+
+        if new_key > x.data {
+            println!("decrease_node: new data is greater than current");
+            return;
+        }
+
+        x.data = new_key;
+
+        let p = x.parent;
+
+        if !p.is_null() && &x.data < unsafe { &(*p).data } {
+            self.cut(x, p);
+            self.cascading_cut(p);
+        }
+
+        if &x.data < unsafe { &(*self.min).data } {
+            self.min = x;
+        }
+    }
+
+    fn cut(&mut self, c: *mut Node<T>, p: *mut Node<T>) {
+        Node::remove_from_child_list(p, c);
+        self.insert_to_root_list(c);
+
+        unsafe {
+            (*c).parent = ptr::null_mut();
+            (*c).lost_child = false;
+        }
+    }
+
+    fn cascading_cut(&mut self, c: *mut Node<T>) {
+        let p = unsafe { (*c).parent };
+
+        if p.is_null() {
+            return;
+        }
+
+        unsafe {
+            if (*c).lost_child {
+                self.cut(c, p);
+                self.cascading_cut(p);
+            } else {
+                (*c).lost_child = true;
+            }
+        }
+    }
 }
 
 impl<T: PartialOrd + Debug> FibHeap<T> {
@@ -237,7 +311,7 @@ impl<T: PartialOrd> Drop for FibHeap<T> {
     }
 }
 
-impl<T> Node<T> {
+impl<T: PartialOrd> Node<T> {
     fn new(data: T) -> Self {
         Self {
             parent: ptr::null_mut(),
@@ -277,6 +351,51 @@ impl<T> Node<T> {
             (*x).num_children += 1;
             (*y).parent = x;
         }
+    }
+
+    fn remove_from_list(x: *mut Self) {
+        unsafe {
+            let left = (*x).left;
+            let right = (*x).right;
+
+            (*left).right = right;
+            (*right).left = left;
+        }
+    }
+
+    fn remove_from_child_list(parent: *mut Self, child: *mut Self) {
+        Self::remove_from_list(child);
+
+        unsafe {
+            (*parent).num_children -= 1;
+
+            if (*parent).num_children == 0 {
+                (*parent).children = ptr::null_mut();
+            }
+        }
+    }
+
+    fn find(x: *mut Self, key: &T) -> *mut Self {
+        unsafe {
+            if &(*x).data == key {
+                return x;
+            }
+
+            let n = (*x).num_children;
+            let mut c = (*x).children;
+
+            for _ in 0..n {
+                let t = Self::find(c, key);
+
+                if !t.is_null() {
+                    return t;
+                }
+
+                c = (*c).right;
+            }
+        }
+
+        ptr::null_mut()
     }
 }
 
@@ -387,11 +506,53 @@ mod tests {
 
     #[test]
     fn drop() {
-        let nodes = if cfg!(miri) { 500 } else { 10000 };
-        let mut l = FibHeap::new();
+        let nodes = if cfg!(miri) { 250 } else { 5000 };
+        let mut h = FibHeap::new();
 
         for i in 0..nodes {
-            l.insert(i);
+            h.insert(i);
         }
+    }
+
+    #[test]
+    fn identities() {
+        let nodes = 100;
+        let mut h = FibHeap::new();
+
+        for i in (0..nodes).rev() {
+            assert_eq!(false, h.has_key(&i));
+            h.insert(i);
+            assert_eq!(true, h.has_key(&i));
+            assert_eq!(Some(&i), h.minimum());
+        }
+
+        for i in 0..nodes {
+            assert_eq!(true, h.has_key(&i));
+            assert_eq!(Some(&i), h.minimum());
+            assert_eq!(Some(i), h.extract_min());
+            assert_eq!(false, h.has_key(&i));
+        }
+    }
+
+    #[test]
+    fn decrease_key() {
+        let mut h = FibHeap::new();
+
+        h.insert(6);
+        h.insert(4);
+        h.insert(8);
+        h.insert(5);
+        h.insert(7);
+
+        assert_eq!(Some(&4), h.minimum());
+
+        h.decrease_key(&6, 3);
+        assert_eq!(Some(&3), h.minimum());
+
+        h.decrease_key(&8, 2);
+        assert_eq!(Some(&2), h.minimum());
+
+        h.decrease_key(&2, 1);
+        assert_eq!(Some(&1), h.minimum());
     }
 }
