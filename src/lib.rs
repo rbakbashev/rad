@@ -4,6 +4,7 @@
     clippy::missing_panics_doc,
     clippy::module_name_repetitions,
     clippy::must_use_candidate,
+    clippy::option_if_let_else,
     clippy::similar_names,
     clippy::uninlined_format_args
 )]

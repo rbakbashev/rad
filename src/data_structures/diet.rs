@@ -160,7 +160,6 @@ fn no_less_than(d: &Diet, a: i16) -> (Diet, i16) {
     }
 }
 
-#[allow(clippy::option_if_let_else)]
 pub fn insert_range(px: i16, py: i16, d: &Diet) -> Diet {
     match d {
         Diet::Empty => Diet::Node(px, py, Box::new(Diet::Empty), Box::new(Diet::Empty)),
