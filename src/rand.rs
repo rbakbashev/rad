@@ -46,48 +46,43 @@ fn current_time_ns() -> u64 {
 mod tests {
     use super::*;
 
-    const ITERATIONS: usize = 1000000;
+    const TEST_ITER: u64 = 10;
+    const SUM_ITER: usize = 1_000_000;
+    const ERR_EPSILON: f64 = 1.;
 
-    #[test]
-    fn rand_test() {
-        let attempts = 10;
+    type GenCb = fn(&mut Wyhash64RNG) -> u64;
 
-        for seed in 1..attempts {
-            let mut rng = Wyhash64RNG::from_seed(seed);
+    fn test(f: GenCb, mexp: f64, fixed_seed: bool) {
+        for seed in 0..TEST_ITER {
             let mut sum = 0;
-            let max = 1000;
-            let err = 1.;
+            let mut rng = if fixed_seed {
+                Wyhash64RNG::from_seed(seed)
+            } else {
+                Wyhash64RNG::new()
+            };
 
-            for _ in 1..ITERATIONS {
-                sum += 1 + rng.gen() % max;
+            for _ in 0..SUM_ITER {
+                sum += f(&mut rng);
             }
 
-            let avg = (sum as f64) / (ITERATIONS as f64);
-            let mexp = (max as f64) / 2.;
+            let avg = (sum as f64) / (SUM_ITER as f64);
 
-            assert!((avg - mexp).abs() < err);
+            assert!((avg - mexp).abs() < ERR_EPSILON);
         }
     }
 
     #[test]
-    fn rand_test_range() {
-        let attempts = 10;
+    fn simple() {
+        test(|r| 1 + r.gen() % 100, 100. / 2., false);
+    }
 
-        for seed in 1..attempts {
-            let mut rng = Wyhash64RNG::from_seed(seed);
-            let mut sum = 0;
-            let min = 500;
-            let max = 1500;
-            let err = 1.;
+    #[test]
+    fn range() {
+        test(|r| r.gen_in_range(50..150), (50. + 150.) / 2., false);
+    }
 
-            for _ in 1..ITERATIONS {
-                sum += rng.gen_in_range(min..max)
-            }
-
-            let avg = (sum as f64) / (ITERATIONS as f64);
-            let mexp = ((max as f64) + (min as f64)) / 2.;
-
-            assert!((avg - mexp).abs() < err);
-        }
+    #[test]
+    fn from_time() {
+        test(|r| 1 + r.gen() % 100, 100. / 2., true);
     }
 }
