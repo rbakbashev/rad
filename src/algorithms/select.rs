@@ -86,14 +86,14 @@ mod tests {
         for k in ks {
             for (desc, arr) in &arrays {
                 println!("Array: {}", desc);
-                single_test(&arr, k);
+                single_test(arr, k);
             }
         }
     }
 
     fn single_test(a: &[u64], k: usize) {
         let mut copy = a.to_vec();
-        let naive = select_naive(&a, k);
+        let naive = select_naive(a, k);
         let check = select(&mut copy, k);
 
         assert_eq!(naive, check);
@@ -102,6 +102,6 @@ mod tests {
     fn select_naive<T: Ord + Copy>(a: &[T], k: usize) -> Option<T> {
         let mut copy = a.to_vec();
         copy.sort_unstable();
-        copy.get(k - 1).map(|x| *x)
+        copy.get(k - 1).copied()
     }
 }

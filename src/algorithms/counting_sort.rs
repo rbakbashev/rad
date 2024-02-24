@@ -139,14 +139,14 @@ mod tests {
         let len = 1000;
         let arrays = tests::generate_test_arrays(len);
 
-        for (desc, arr) in arrays {
+        for (desc, arr) in &arrays {
             println!("Array: {}", desc);
             min_max_single_test(arr);
         }
     }
 
-    fn min_max_single_test(a: Vec<u64>) {
-        assert_eq!(find_min_max(&a).map(|t| t.0), a.iter().min().copied());
-        assert_eq!(find_min_max(&a).map(|t| t.1), a.iter().max().copied());
+    fn min_max_single_test(a: &[u64]) {
+        assert_eq!(find_min_max(a).map(|t| t.0), a.iter().min().copied());
+        assert_eq!(find_min_max(a).map(|t| t.1), a.iter().max().copied());
     }
 }

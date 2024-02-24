@@ -102,7 +102,8 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "assertion failed: y < self.height")]
+    #[allow(clippy::no_effect_underscore_binding)]
     fn trait_panic() {
         let arr = Array2D::new(0, 3, 2);
         let _x = arr[2][0];

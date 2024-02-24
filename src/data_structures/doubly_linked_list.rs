@@ -178,13 +178,11 @@ mod tests {
 
         l.push_front(4);
         l.push_front(5);
-        l.push_front(6);
 
         l.head_mut().map(|x| *x *= 2);
 
-        assert_eq!(Some(&12), l.head());
-        assert_eq!(Some(12), l.pop_front());
-        assert_eq!(Some(5), l.pop_front());
+        assert_eq!(Some(&10), l.head());
+        assert_eq!(Some(10), l.pop_front());
         assert_eq!(Some(4), l.pop_front());
         assert_eq!(None, l.head());
         assert_eq!(None, l.pop_front());
@@ -222,13 +220,11 @@ mod tests {
 
         l.push_back(4);
         l.push_back(5);
-        l.push_back(6);
 
         l.tail_mut().map(|x| *x *= 2);
 
-        assert_eq!(Some(&12), l.tail());
-        assert_eq!(Some(12), l.pop_back());
-        assert_eq!(Some(5), l.pop_back());
+        assert_eq!(Some(&10), l.tail());
+        assert_eq!(Some(10), l.pop_back());
         assert_eq!(Some(4), l.pop_back());
         assert_eq!(None, l.tail());
         assert_eq!(None, l.pop_front());
@@ -236,7 +232,7 @@ mod tests {
 
     #[test]
     fn drop() {
-        let nodes = if cfg!(miri) { 5000 } else { 100000 };
+        let nodes = if cfg!(miri) { 5000 } else { 100_000 };
         let mut l = LinkedList::new();
 
         for i in 0..nodes {

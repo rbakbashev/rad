@@ -201,7 +201,7 @@ mod tests {
     fn drop() {
         let mut list = List::new();
 
-        for i in 0..100000 {
+        for i in 0..100_000 {
             list.push(i);
         }
     }

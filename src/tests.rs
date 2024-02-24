@@ -65,9 +65,12 @@ fn permute<T>(v: &mut [T]) {
     let mut r = Wyhash64RNG::from_seed(RAND_SEED);
 
     for i in 0..n {
-        let j = r.gen_in_range(i..n) as usize;
+        let j = r.gen_in_range(i..n);
 
-        v.swap(i as usize, j);
+        let i = usize::try_from(i).unwrap();
+        let j = usize::try_from(j).unwrap();
+
+        v.swap(i, j);
     }
 }
 

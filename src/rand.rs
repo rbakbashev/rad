@@ -47,7 +47,7 @@ mod tests {
     use super::*;
 
     const TEST_ITER: u64 = 10;
-    const SUM_ITER: usize = 1_000_000;
+    const SUM_ITER: u64 = 1_000_000;
     const ERR_EPSILON: f64 = 1.;
 
     type GenCb = fn(&mut Wyhash64RNG) -> u64;
@@ -65,6 +65,11 @@ mod tests {
                 sum += f(&mut rng);
             }
 
+            let max_int_f64 = 2_u64.pow(f64::MANTISSA_DIGITS) - 1;
+            assert!(sum < max_int_f64);
+            assert!(SUM_ITER < max_int_f64);
+
+            #[allow(clippy::cast_precision_loss)]
             let avg = (sum as f64) / (SUM_ITER as f64);
 
             assert!((avg - mexp).abs() < ERR_EPSILON);

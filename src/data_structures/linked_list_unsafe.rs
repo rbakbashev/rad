@@ -166,7 +166,7 @@ impl<T> Node<T> {
 mod tests {
     use super::*;
 
-    const DROPPED_NODES: usize = if cfg!(miri) { 5000 } else { 100000 };
+    const DROPPED_NODES: usize = if cfg!(miri) { 5000 } else { 100_000 };
 
     #[test]
     fn simple() {

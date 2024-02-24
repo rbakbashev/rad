@@ -8,6 +8,15 @@
     clippy::similar_names,
     clippy::uninlined_format_args
 )]
+#![cfg_attr(
+    test,
+    allow(
+        clippy::bool_assert_comparison,
+        clippy::unwrap_used,
+        clippy::option_map_unit_fn,
+        clippy::explicit_iter_loop,
+    )
+)]
 
 pub mod algorithms;
 pub mod data_structures;
