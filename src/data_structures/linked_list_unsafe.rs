@@ -1,5 +1,5 @@
 //! Unsafe singly-linked queue, also adapted from the book [Learning Rust With Entirely Too Many
-//! Linked Lists][https://rust-unofficial.github.io/too-many-lists/index.html].
+//! Linked Lists](https://rust-unofficial.github.io/too-many-lists/index.html).
 
 use std::ptr;
 
