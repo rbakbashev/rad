@@ -96,21 +96,21 @@ mod tests {
 
     #[test]
     fn dq_1() {
-        assert_eq!((7, 10, 43), max_subarray_sum(CASE1))
+        assert_eq!((7, 10, 43), max_subarray_sum(CASE1));
     }
 
     #[test]
     fn dq_2() {
-        assert_eq!((2, 2, 3), max_subarray_sum(CASE2))
+        assert_eq!((2, 2, 3), max_subarray_sum(CASE2));
     }
 
     #[test]
     fn linear_1() {
-        assert_eq!((7, 10, 43), max_subarray_sum_linear(CASE1))
+        assert_eq!((7, 10, 43), max_subarray_sum_linear(CASE1));
     }
 
     #[test]
     fn linear_2() {
-        assert_eq!((2, 2, 3), max_subarray_sum_linear(CASE2))
+        assert_eq!((2, 2, 3), max_subarray_sum_linear(CASE2));
     }
 }
