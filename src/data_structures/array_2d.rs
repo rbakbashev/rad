@@ -35,6 +35,14 @@ impl<T: Copy> Array2D<T> {
 
         Some(y * self.width + x)
     }
+
+    pub fn width(&self) -> usize {
+        self.width
+    }
+
+    pub fn height(&self) -> usize {
+        self.height
+    }
 }
 
 impl<T> Index<usize> for Array2D<T> {
