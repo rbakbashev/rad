@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use super::array_2d::Array2D;
 
 pub struct AdjList<T: Copy + Ord> {
@@ -11,6 +13,12 @@ struct Edge<T> {
 
 pub struct AdjMatrix<T: Copy + Default + PartialEq> {
     data: Array2D<T>,
+}
+
+struct AugmentedVertex {
+    seen: bool,
+    dist: Option<usize>,
+    pred: Option<usize>,
 }
 
 impl<T: Copy + Ord> AdjList<T> {
@@ -40,6 +48,54 @@ impl<T: Copy + Ord> AdjList<T> {
         list.dedup();
 
         list
+    }
+
+    pub fn breadth_first_search(&self, src: usize, mut cb: impl FnMut(usize)) -> Vec<usize> {
+        let mut verts = self.construct_augmented_verts();
+        let mut queue = VecDeque::new();
+
+        verts[src].dist = Some(0);
+
+        queue.push_back(src);
+
+        while let Some(vert_idx) = queue.pop_front() {
+            if !verts[vert_idx].seen {
+                cb(vert_idx);
+            }
+
+            for edge in &self.edges[vert_idx] {
+                if verts[edge.node].seen {
+                    continue;
+                }
+
+                if let Some(d) = verts[edge.node].dist.as_mut() {
+                    *d += 1;
+                }
+
+                verts[edge.node].pred = Some(vert_idx);
+
+                queue.push_back(edge.node);
+            }
+
+            verts[vert_idx].seen = true;
+        }
+
+        // predecessor subgraph
+        verts.iter().filter_map(|v| v.pred).collect()
+    }
+
+    fn construct_augmented_verts(&self) -> Vec<AugmentedVertex> {
+        let mut verts = Vec::with_capacity(self.edges.len());
+
+        for _ in 0..self.edges.len() {
+            verts.push(AugmentedVertex {
+                seen: false,
+                dist: None,
+                pred: None,
+            });
+        }
+
+        verts
     }
 }
 
@@ -138,5 +194,28 @@ mod tests {
         ];
 
         assert_eq!(&e, m.list_edges().as_slice());
+    }
+
+    #[test]
+    fn dfs() {
+        let mut l = AdjList::<()>::new();
+
+        l.insert(0, 1, ());
+        l.insert(0, 4, ());
+        l.insert(1, 4, ());
+        l.insert(1, 3, ());
+        l.insert(1, 2, ());
+        l.insert(3, 2, ());
+        l.insert(3, 4, ());
+
+        let mut collection = vec![];
+
+        l.breadth_first_search(2, |i| {
+            collection.push(i);
+        });
+
+        let expected = [2, 1, 3, 0, 4];
+
+        assert_eq!(&expected, collection.as_slice());
     }
 }
