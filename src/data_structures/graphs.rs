@@ -50,7 +50,10 @@ impl<T: Copy + Ord> AdjList<T> {
         list
     }
 
-    pub fn breadth_first_search(&self, src: usize, mut cb: impl FnMut(usize)) -> Vec<usize> {
+    pub fn breadth_first_search<F>(&self, src: usize, mut cb: F) -> Vec<Option<usize>>
+    where
+        F: FnMut(usize),
+    {
         let mut verts = self.construct_augmented_verts();
         let mut queue = VecDeque::new();
 
@@ -59,17 +62,17 @@ impl<T: Copy + Ord> AdjList<T> {
         queue.push_back(src);
 
         while let Some(vert_idx) = queue.pop_front() {
-            if !verts[vert_idx].seen {
-                cb(vert_idx);
-            }
+            cb(vert_idx);
 
             for edge in &self.edges[vert_idx] {
                 if verts[edge.node].seen {
                     continue;
                 }
 
-                if let Some(d) = verts[edge.node].dist.as_mut() {
-                    *d += 1;
+                verts[edge.node].seen = true;
+
+                if let Some(d) = verts[vert_idx].dist {
+                    verts[edge.node].dist = Some(d + 1);
                 }
 
                 verts[edge.node].pred = Some(vert_idx);
@@ -81,7 +84,7 @@ impl<T: Copy + Ord> AdjList<T> {
         }
 
         // predecessor subgraph
-        verts.iter().filter_map(|v| v.pred).collect()
+        verts.iter().map(|v| v.pred).collect()
     }
 
     fn construct_augmented_verts(&self) -> Vec<AugmentedVertex> {
@@ -96,6 +99,26 @@ impl<T: Copy + Ord> AdjList<T> {
         }
 
         verts
+    }
+
+    pub fn shortest_path(&self, src: usize, mut dst: usize) -> Option<Vec<usize>> {
+        let predecessor_subgraph = self.breadth_first_search(src, |_| {});
+        let mut nodes = vec![];
+
+        while let Some(pred) = predecessor_subgraph[dst] {
+            nodes.push(dst);
+            dst = pred;
+        }
+
+        if dst == src {
+            nodes.push(src);
+        } else {
+            return None;
+        }
+
+        nodes.reverse();
+
+        Some(nodes)
     }
 }
 
@@ -217,5 +240,57 @@ mod tests {
         let expected = [2, 1, 3, 0, 4];
 
         assert_eq!(&expected, collection.as_slice());
+    }
+
+    #[test]
+    fn dfs_2() {
+        /*
+         *  1--2  4--6
+         *  |  |/ | /|
+         *  0  3--5--7
+         *
+         */
+        let mut l = AdjList::<()>::new();
+
+        l.insert(0, 1, ());
+        l.insert(1, 2, ());
+        l.insert(2, 3, ());
+        l.insert(3, 4, ());
+        l.insert(3, 5, ());
+        l.insert(4, 5, ());
+        l.insert(4, 6, ());
+        l.insert(5, 6, ());
+        l.insert(5, 7, ());
+        l.insert(6, 7, ());
+
+        let mut collection = vec![];
+
+        l.breadth_first_search(2, |i| {
+            collection.push(i);
+        });
+
+        let expected = [2, 1, 3, 0, 4, 5, 6, 7];
+
+        assert_eq!(&expected, collection.as_slice());
+    }
+
+    #[test]
+    fn shortest_path() {
+        let mut l = AdjList::<()>::new();
+
+        l.insert(0, 1, ());
+        l.insert(1, 2, ());
+        l.insert(2, 3, ());
+        l.insert(3, 4, ());
+        l.insert(3, 5, ());
+        l.insert(4, 5, ());
+        l.insert(4, 6, ());
+        l.insert(5, 6, ());
+        l.insert(5, 7, ());
+        l.insert(6, 7, ());
+
+        let path = l.shortest_path(1, 7);
+
+        assert_eq!(Some([1, 2, 3, 5, 7].as_slice()), path.as_deref());
     }
 }
