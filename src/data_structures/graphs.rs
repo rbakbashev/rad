@@ -120,6 +120,27 @@ impl<T: Copy + Ord> AdjList<T> {
 
         Some(nodes)
     }
+
+    pub fn depth_first_search(&self, src: usize, mut cb: impl FnMut(usize)) {
+        let mut visited = vec![false; self.edges.len()];
+        let mut stack = VecDeque::new();
+
+        stack.push_back(src);
+
+        while let Some(curr) = stack.pop_back() {
+            if !visited[curr] {
+                cb(curr);
+            }
+
+            visited[curr] = true;
+
+            for edge in &self.edges[curr] {
+                if !visited[edge.node] {
+                    stack.push_back(edge.node);
+                }
+            }
+        }
+    }
 }
 
 impl<T: Copy + Ord> Default for AdjList<T> {
@@ -220,7 +241,7 @@ mod tests {
     }
 
     #[test]
-    fn dfs() {
+    fn bfs() {
         let mut l = AdjList::<()>::new();
 
         l.insert(0, 1, ());
@@ -243,7 +264,7 @@ mod tests {
     }
 
     #[test]
-    fn dfs_2() {
+    fn bfs_2() {
         /*
          *  1--2  4--6
          *  |  |/ | /|
@@ -292,5 +313,31 @@ mod tests {
         let path = l.shortest_path(1, 7);
 
         assert_eq!(Some([1, 2, 3, 5, 7].as_slice()), path.as_deref());
+    }
+
+    #[test]
+    fn dfs() {
+        let mut l = AdjList::<()>::new();
+
+        l.insert(0, 1, ());
+        l.insert(1, 2, ());
+        l.insert(2, 3, ());
+        l.insert(3, 4, ());
+        l.insert(3, 5, ());
+        l.insert(4, 5, ());
+        l.insert(4, 6, ());
+        l.insert(5, 6, ());
+        l.insert(5, 7, ());
+        l.insert(6, 7, ());
+
+        let mut collection = vec![];
+
+        l.depth_first_search(0, |i| {
+            collection.push(i);
+        });
+
+        let expected = [0, 1, 2, 3, 5, 7, 6, 4];
+
+        assert_eq!(&expected, collection.as_slice());
     }
 }
