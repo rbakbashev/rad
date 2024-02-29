@@ -1,3 +1,5 @@
+//! Handy 2D array abstraction over a single [Vec] supporting `[y][x]` operations
+
 use std::fmt;
 use std::ops::{Index, IndexMut};
 

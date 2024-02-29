@@ -1,3 +1,5 @@
+//! Fibonacci heap
+
 use std::fmt::Debug;
 use std::{mem, ptr};
 

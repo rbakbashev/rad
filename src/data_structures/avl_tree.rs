@@ -1,3 +1,5 @@
+//! Self-balancing binary tree
+
 use std::cmp::Ordering;
 use std::fmt;
 

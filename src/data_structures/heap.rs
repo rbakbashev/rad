@@ -1,3 +1,5 @@
+//! Binary heap that borrows contents of underlying storage as a mutable slice
+
 pub struct BorrowingHeap<'d, T: PartialOrd> {
     len: usize,
     data: &'d mut [T],

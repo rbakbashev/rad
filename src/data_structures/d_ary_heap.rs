@@ -1,3 +1,5 @@
+//! Heap where non-leaf nodes have *d* children instead of 2
+
 pub struct DAryHeap<T, const D: usize> {
     data: Vec<T>,
 }
