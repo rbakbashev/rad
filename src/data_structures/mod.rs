@@ -11,3 +11,4 @@ pub mod linked_list;
 pub mod linked_list_unsafe;
 pub mod priority_queue;
 pub mod veb_tree;
+pub mod y_fast_trie;
