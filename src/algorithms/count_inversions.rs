@@ -7,7 +7,7 @@ fn count_inv_rec<T: Default + Copy + PartialOrd>(a: &mut [T], l: usize, h: usize
         return 0;
     }
 
-    let m = (l + h) / 2;
+    let m = l + (h - l) / 2;
     let left = count_inv_rec(a, l, m);
     let right = count_inv_rec(a, m + 1, h);
 

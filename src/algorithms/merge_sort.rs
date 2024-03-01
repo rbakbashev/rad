@@ -7,7 +7,7 @@ pub fn merge_sort<T: Default + Copy + PartialOrd>(a: &mut [T]) {
 }
 
 fn merge_rec<T: Default + Copy + PartialOrd>(a: &mut [T], l: usize, h: usize) {
-    let m = (l + h) / 2;
+    let m = l + (h - l) / 2;
 
     if l == h {
         return;
