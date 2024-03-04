@@ -20,6 +20,14 @@ impl<T: Copy> Array2D<T> {
         }
     }
 
+    pub fn from_slice(width: usize, height: usize, data: &[T]) -> Self {
+        Self {
+            width,
+            height,
+            data: data.to_vec(),
+        }
+    }
+
     pub fn get(&self, y: usize, x: usize) -> Option<&T> {
         let idx = self.idx(x, y)?;
         self.data.get(idx)
@@ -66,6 +74,18 @@ impl<T> IndexMut<usize> for Array2D<T> {
         let start = y * self.width;
 
         &mut self.data[start..start + self.width]
+    }
+}
+
+impl<T> AsRef<[T]> for Array2D<T> {
+    fn as_ref(&self) -> &[T] {
+        self.data.as_ref()
+    }
+}
+
+impl<T> AsMut<[T]> for Array2D<T> {
+    fn as_mut(&mut self) -> &mut [T] {
+        self.data.as_mut()
     }
 }
 
