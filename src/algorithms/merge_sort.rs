@@ -1,4 +1,4 @@
-pub fn merge_sort<T: Default + Copy + PartialOrd>(a: &mut [T]) {
+pub fn merge_sort<T: Copy + PartialOrd>(a: &mut [T]) {
     if a.len() <= 1 {
         return;
     }
@@ -6,7 +6,7 @@ pub fn merge_sort<T: Default + Copy + PartialOrd>(a: &mut [T]) {
     merge_rec(a, 0, a.len() - 1);
 }
 
-fn merge_rec<T: Default + Copy + PartialOrd>(a: &mut [T], l: usize, h: usize) {
+fn merge_rec<T: Copy + PartialOrd>(a: &mut [T], l: usize, h: usize) {
     let m = l + (h - l) / 2;
 
     if l == h {
@@ -18,22 +18,15 @@ fn merge_rec<T: Default + Copy + PartialOrd>(a: &mut [T], l: usize, h: usize) {
     merge(a, l, m, h);
 }
 
-fn merge<T: Default + Copy + PartialOrd>(a: &mut [T], l: usize, m: usize, h: usize) {
-    let llen = m - l + 1;
-    let rlen = h - m;
-    let mut left = Vec::new();
-    let mut right = Vec::new();
-
-    left.resize_with(llen, Default::default);
-    right.resize_with(rlen, Default::default);
-
-    left.copy_from_slice(&a[l..=m]);
-    right.copy_from_slice(&a[m + 1..=h]);
+fn merge<T: Copy + PartialOrd>(a: &mut [T], l: usize, m: usize, h: usize) {
+    let left = &a[l..=m].to_vec();
+    let right = &a[m + 1..=h].to_vec();
 
     let mut i = 0;
     let mut j = 0;
     let mut k = l;
-    while i < llen && j < rlen {
+
+    while i < left.len() && j < right.len() {
         if left[i] <= right[j] {
             a[k] = left[i];
             i += 1;
@@ -44,20 +37,19 @@ fn merge<T: Default + Copy + PartialOrd>(a: &mut [T], l: usize, m: usize, h: usi
         k += 1;
     }
 
-    while i != llen {
+    while i != left.len() {
         a[k] = left[i];
         i += 1;
         k += 1;
     }
 
-    while j != rlen {
+    while j != right.len() {
         a[k] = right[j];
         j += 1;
         k += 1;
     }
 }
 
-#[cfg(test)]
 #[test]
 fn test() {
     crate::tests::test_sort(merge_sort);
