@@ -123,11 +123,11 @@ impl<T: Copy + Ord> AdjList<T> {
 
     pub fn depth_first_search(&self, src: usize, mut cb: impl FnMut(usize)) {
         let mut visited = vec![false; self.edges.len()];
-        let mut stack = VecDeque::new();
+        let mut stack = Vec::new();
 
-        stack.push_back(src);
+        stack.push(src);
 
-        while let Some(curr) = stack.pop_back() {
+        while let Some(curr) = stack.pop() {
             if !visited[curr] {
                 cb(curr);
             }
@@ -136,7 +136,7 @@ impl<T: Copy + Ord> AdjList<T> {
 
             for edge in &self.edges[curr] {
                 if !visited[edge.node] {
-                    stack.push_back(edge.node);
+                    stack.push(edge.node);
                 }
             }
         }
