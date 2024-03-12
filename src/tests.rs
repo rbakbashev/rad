@@ -54,7 +54,7 @@ fn generate_array_random(n: usize, lower: u64, upper: u64) -> Vec<u64> {
     v
 }
 
-fn generate_array_shuffled<T: From<u64>>(n: usize) -> Vec<T> {
+pub fn generate_array_shuffled<T: From<u64>>(n: usize) -> Vec<T> {
     let mut v = generate_array_ascending(n);
     shuffle(&mut v);
     v
