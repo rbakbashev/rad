@@ -60,7 +60,7 @@ fn generate_array_permuation<T: From<u64>>(n: usize) -> Vec<T> {
     v
 }
 
-fn permute<T>(v: &mut [T]) {
+pub fn permute<T>(v: &mut [T]) {
     let n = v.len() as u64;
     let mut r = Wyhash64RNG::from_seed(RAND_SEED);
 

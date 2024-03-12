@@ -78,16 +78,16 @@ mod tests {
 
     #[test]
     fn simple() {
-        test(|r| 1 + r.gen() % 100, 100. / 2., false);
+        test(|r| 1 + r.gen() % 100, 100. / 2., true);
     }
 
     #[test]
     fn range() {
-        test(|r| r.gen_in_range(50..150), (50. + 150.) / 2., false);
+        test(|r| r.gen_in_range(50..150), (50. + 150.) / 2., true);
     }
 
     #[test]
     fn from_time() {
-        test(|r| 1 + r.gen() % 100, 100. / 2., true);
+        test(|r| 1 + r.gen() % 100, 100. / 2., false);
     }
 }
