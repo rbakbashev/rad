@@ -23,7 +23,7 @@ pub fn generate_test_arrays(n: usize) -> Vec<(&'static str, Vec<u64>)> {
         ("asc", generate_array_ascending(n)),
         ("desc", generate_array_descending(n)),
         ("rand", generate_array_random(n, 1, n as u64)),
-        ("perm", generate_array_permuation(n)),
+        ("shuf", generate_array_shuffled(n)),
     ]
 }
 
@@ -54,13 +54,13 @@ fn generate_array_random(n: usize, lower: u64, upper: u64) -> Vec<u64> {
     v
 }
 
-fn generate_array_permuation<T: From<u64>>(n: usize) -> Vec<T> {
+fn generate_array_shuffled<T: From<u64>>(n: usize) -> Vec<T> {
     let mut v = generate_array_ascending(n);
-    permute(&mut v);
+    shuffle(&mut v);
     v
 }
 
-pub fn permute<T>(v: &mut [T]) {
+pub fn shuffle<T>(v: &mut [T]) {
     let n = v.len() as u64;
     let mut r = Wyhash64RNG::from_seed(RAND_SEED);
 

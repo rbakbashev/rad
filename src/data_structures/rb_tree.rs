@@ -438,7 +438,7 @@ impl<T> Node<T> {
 mod tests {
     use super::*;
     use crate::rand::Wyhash64RNG;
-    use crate::tests::permute;
+    use crate::tests::shuffle;
     use std::collections::HashMap;
 
     const NUM_NODES: usize = 512;
@@ -507,7 +507,7 @@ mod tests {
         // unique and the underlying type is a tuple anyway.
         let mut kv = keys.drain().collect::<Vec<_>>();
         kv.sort_unstable();
-        permute(&mut kv);
+        shuffle(&mut kv);
 
         for (key, idx) in kv {
             assert!(tree.has_key(&key));
