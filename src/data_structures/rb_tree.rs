@@ -6,6 +6,7 @@ use std::fmt;
 pub struct RbTree<T: Ord + Default> {
     root: usize,
     nodes: Vec<Node<T>>,
+    recycled: Vec<usize>,
 }
 
 struct Node<T> {
@@ -23,8 +24,13 @@ impl<T: Ord + Default> RbTree<T> {
         let sentinel = Node::new(T::default());
         let nodes = vec![sentinel];
         let root = NIL;
+        let recycled = Vec::new();
 
-        Self { root, nodes }
+        Self {
+            root,
+            nodes,
+            recycled,
+        }
     }
 
     pub fn insert(&mut self, key: T) -> usize {
@@ -60,6 +66,11 @@ impl<T: Ord + Default> RbTree<T> {
     }
 
     fn allocate(&mut self, key: T) -> usize {
+        if let Some(idx) = self.recycled.pop() {
+            self.nodes[idx] = Node::new(key);
+            return idx;
+        }
+
         self.nodes.push(Node::new(key));
         self.nodes.len() - 1
     }
@@ -231,6 +242,8 @@ impl<T: Ord + Default> RbTree<T> {
         if !r {
             self.delete_fixup(x);
         }
+
+        self.recycled.push(node);
     }
 
     fn transplant(&mut self, u: usize, v: usize) {
@@ -525,5 +538,26 @@ mod tests {
         for seed in 0..num_cases {
             random_single_case(seed, NUM_NODES, 0..1000);
         }
+    }
+
+    #[test]
+    #[allow(clippy::needless_range_loop)]
+    fn recycle() {
+        let mut tree = RbTree::new();
+        let mut keys = vec![0; NUM_NODES];
+
+        for key in 0..NUM_NODES {
+            keys[key] = tree.insert(key);
+        }
+
+        for key in 0..NUM_NODES {
+            tree.delete(keys[key]);
+        }
+
+        for key in 0..NUM_NODES {
+            keys[key] = tree.insert(key);
+        }
+
+        assert_eq!(NUM_NODES + 1, tree.nodes.len());
     }
 }
