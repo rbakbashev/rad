@@ -202,7 +202,7 @@ impl<T: Ord + Default> OsTree<T> {
         let ls = self.nodes[self.nodes[x].left].size;
         let rs = self.nodes[self.nodes[x].right].size;
 
-        self.nodes[x].size = rs + ls + 1;
+        self.nodes[x].size = ls + rs + 1;
     }
 
     pub fn has_key(&self, key: &T) -> bool {
@@ -225,21 +225,19 @@ impl<T: Ord + Default> OsTree<T> {
         let x;
 
         let mut r = self.nodes[y].red;
-        let mut w = self.nodes[y].parent;
-
-        while w != NIL {
-            self.nodes[w].size -= 1;
-            w = self.nodes[w].parent;
-        }
 
         if self.nodes[z].left == NIL {
             x = self.nodes[z].right;
-            self.transplant(z, self.nodes[z].right);
+            self.decr_ancestor_sizes(y);
+            self.transplant(z, x);
         } else if self.nodes[z].right == NIL {
             x = self.nodes[z].left;
-            self.transplant(z, self.nodes[z].left);
+            self.decr_ancestor_sizes(y);
+            self.transplant(z, x);
         } else {
             let y = self.min_node_from(self.nodes[z].right);
+
+            self.decr_ancestor_sizes(y);
 
             r = self.nodes[y].red;
             x = self.nodes[y].right;
@@ -268,6 +266,15 @@ impl<T: Ord + Default> OsTree<T> {
         }
 
         self.recycled.push(node);
+    }
+
+    fn decr_ancestor_sizes(&mut self, y: usize) {
+        let mut w = y;
+
+        while w != NIL {
+            self.nodes[w].size -= 1;
+            w = self.nodes[w].parent;
+        }
     }
 
     fn transplant(&mut self, u: usize, v: usize) {
@@ -567,7 +574,7 @@ mod tests {
             idxs.insert(key, idx);
         }
 
-        let (deleted, retained) = keys.split_at(NUM_NODES);
+        let (deleted, retained) = keys.split_at(NUM_NODES / 2);
 
         for key in deleted {
             let idx = idxs.get(key).expect("element should be present");
@@ -578,7 +585,7 @@ mod tests {
         retained.sort_unstable();
 
         for (k, r) in retained.iter().enumerate() {
-            assert_eq!(Some(r), tree.select(k));
+            assert_eq!(Some(r), tree.select(k + 1));
         }
     }
 }
