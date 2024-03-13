@@ -119,6 +119,11 @@ mod tests {
         assert_eq!(arr.get(1, 2), Some(&123));
         assert_eq!(arr.get(0, 0), Some(&0));
         assert_eq!(arr.get(2, 0), None);
+
+        assert_eq!(arr.get_mut(0, 3), None);
+
+        arr.as_mut()[0] = 321;
+        assert_eq!(arr.get(0, 0), Some(&321));
     }
 
     #[test]
