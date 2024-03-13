@@ -150,7 +150,7 @@ mod tests {
 
     #[test]
     fn change_priority() {
-        let mut q = DAryHeap::<i32, D>::new();
+        let mut q = DAryHeap::<i32, D>::default();
 
         for i in 1..=5 {
             q.insert(i);

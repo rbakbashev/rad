@@ -150,7 +150,7 @@ mod tests {
     fn front() {
         let mut l = LinkedList::new();
 
-        assert_eq!(0, l.len());
+        assert!(l.is_empty());
         assert_eq!(None, l.pop_front());
         assert_eq!(None, l.head());
 
@@ -192,7 +192,7 @@ mod tests {
     fn back() {
         let mut l = LinkedList::new();
 
-        assert_eq!(0, l.len());
+        assert!(l.is_empty());
         assert_eq!(None, l.pop_back());
         assert_eq!(None, l.tail());
 
@@ -233,7 +233,7 @@ mod tests {
     #[test]
     fn drop() {
         let nodes = if cfg!(miri) { 5000 } else { 100_000 };
-        let mut l = LinkedList::new();
+        let mut l = LinkedList::default();
 
         for i in 0..nodes {
             l.push_front(i);
