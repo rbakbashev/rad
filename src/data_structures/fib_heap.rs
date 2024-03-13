@@ -78,6 +78,7 @@ impl<T: PartialOrd> FibHeap<T> {
             self.min = other.min;
             self.all_nodes = other.all_nodes;
             self.root_list = other.root_list;
+            other.min = ptr::null_mut();
             return;
         }
 
@@ -509,8 +510,6 @@ mod tests {
 
     #[test]
     fn simple() {
-        println!();
-
         let mut h = FibHeap::new();
 
         h.insert(4);
@@ -533,8 +532,6 @@ mod tests {
 
     #[test]
     fn with_merge() {
-        println!();
-
         let mut h = FibHeap::new();
 
         h.insert(5);
@@ -563,6 +560,37 @@ mod tests {
 
         assert_eq!(None, h.minimum());
         assert_eq!(None, h.extract_min());
+    }
+
+    #[test]
+    fn merge_edge_cases() {
+        {
+            let mut h = FibHeap::new();
+            h.insert(3);
+            h.insert(2);
+            h.insert(1);
+            assert_eq!(Some(&1), h.minimum());
+
+            let h2 = FibHeap::default();
+
+            h.merge(h2);
+
+            assert_eq!(Some(&1), h.minimum());
+        }
+
+        {
+            let mut h = FibHeap::new();
+            h.insert(3);
+            h.insert(2);
+            h.insert(1);
+            assert_eq!(Some(&1), h.minimum());
+
+            let mut h2 = FibHeap::default();
+
+            h2.merge(h);
+
+            assert_eq!(Some(&1), h2.minimum());
+        }
     }
 
     #[test]
