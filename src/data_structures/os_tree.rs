@@ -43,7 +43,7 @@ impl<T: Ord + Default> OsTree<T> {
         while cur != NIL {
             par = cur;
 
-            self.nodes[par].size += 1;
+            self.nodes[cur].size += 1;
 
             cur = if self.nodes[x].key < self.nodes[cur].key {
                 self.nodes[cur].left
@@ -199,8 +199,8 @@ impl<T: Ord + Default> OsTree<T> {
 
         self.nodes[y].size = self.nodes[x].size;
 
-        let rs = self.nodes[self.nodes[x].right].size;
         let ls = self.nodes[self.nodes[x].left].size;
+        let rs = self.nodes[self.nodes[x].right].size;
 
         self.nodes[x].size = rs + ls + 1;
     }
@@ -225,6 +225,12 @@ impl<T: Ord + Default> OsTree<T> {
         let x;
 
         let mut r = self.nodes[y].red;
+        let mut w = self.nodes[y].parent;
+
+        while w != NIL {
+            self.nodes[w].size -= 1;
+            w = self.nodes[w].parent;
+        }
 
         if self.nodes[z].left == NIL {
             x = self.nodes[z].right;
@@ -275,6 +281,7 @@ impl<T: Ord + Default> OsTree<T> {
             self.nodes[up].right = v;
         }
 
+        self.nodes[v].size = self.nodes[u].size;
         self.nodes[v].parent = up;
     }
 
@@ -509,6 +516,7 @@ impl<T> Node<T> {
 mod tests {
     use super::*;
     use crate::tests;
+    use std::collections::HashMap;
 
     const NUM_NODES: usize = 512;
 
@@ -537,15 +545,40 @@ mod tests {
     #[test]
     fn randomized() {
         let keys = tests::generate_array_shuffled::<u64>(NUM_NODES);
-
         let mut tree = OsTree::new();
 
         for key in keys {
-            tree.insert(key);
+            tree.insert(key + 1);
         }
 
         for k in 1..=NUM_NODES {
-            assert_eq!(Some(k as u64 - 1).as_ref(), tree.select(k));
+            assert_eq!(Some(k as u64).as_ref(), tree.select(k));
+        }
+    }
+
+    #[test]
+    fn half_deleted() {
+        let keys = tests::generate_array_shuffled::<u64>(NUM_NODES);
+        let mut tree = OsTree::new();
+        let mut idxs = HashMap::new();
+
+        for key in &keys {
+            let idx = tree.insert(*key);
+            idxs.insert(key, idx);
+        }
+
+        let (deleted, retained) = keys.split_at(NUM_NODES);
+
+        for key in deleted {
+            let idx = idxs.get(key).expect("element should be present");
+            tree.delete(*idx);
+        }
+
+        let mut retained = retained.to_vec();
+        retained.sort_unstable();
+
+        for (k, r) in retained.iter().enumerate() {
+            assert_eq!(Some(r), tree.select(k));
         }
     }
 }
