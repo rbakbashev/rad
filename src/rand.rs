@@ -47,7 +47,7 @@ mod tests {
     use super::*;
 
     const TEST_ITER: u64 = 10;
-    const SUM_ITER: u64 = 1_000_000;
+    const SUM_ITER: u64 = if cfg!(miri) { 10_000 } else { 1_000_000 };
     const ERR_EPSILON: f64 = 1.;
 
     type GenCb = fn(&mut Wyhash64RNG) -> u64;
@@ -87,6 +87,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(not(miri))]
     fn from_time() {
         test(|r| 1 + r.gen() % 100, 100. / 2., false);
     }

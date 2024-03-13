@@ -447,7 +447,7 @@ mod tests {
 
     #[test]
     fn drop() {
-        let exp = 16;
+        let exp = if cfg!(miri) { 8 } else { 16 };
         let mut t = VebTree::new(exp);
 
         for x in 0..2_usize.pow(exp) {

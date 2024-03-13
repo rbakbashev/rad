@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::rand::Wyhash64RNG;
 
-const TEST_ARRAY_LEN: usize = 1000;
+const TEST_ARRAY_LEN: usize = if cfg!(miri) { 100 } else { 1000 };
 const RAND_SEED: u64 = 123;
 
 pub fn test_sort(f: impl Fn(&mut [u64])) {

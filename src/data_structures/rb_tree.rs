@@ -454,7 +454,7 @@ mod tests {
     use crate::tests::shuffle;
     use std::collections::HashMap;
 
-    const NUM_NODES: usize = 512;
+    const NUM_NODES: usize = if cfg!(miri) { 128 } else { 512 };
 
     #[test]
     fn insert() {

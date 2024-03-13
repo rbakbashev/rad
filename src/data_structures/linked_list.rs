@@ -199,9 +199,10 @@ mod tests {
 
     #[test]
     fn drop() {
-        let mut list = List::new();
+        let nodes = if cfg!(miri) { 5000 } else { 100_000 };
+        let mut list = List::default();
 
-        for i in 0..100_000 {
+        for i in 0..nodes {
             list.push(i);
         }
     }
