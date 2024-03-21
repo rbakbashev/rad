@@ -20,18 +20,13 @@ fn quicksort_aux<T: PartialOrd + Copy>(a: &mut [T], l: usize, h: usize) {
 }
 
 fn partition_hoare<T: PartialOrd + Copy>(a: &mut [T], l: usize, h: usize) -> usize {
-    let mut ineg = l == 0;
-    let mut i = if ineg { l } else { l - 1 };
+    let mut i = l.wrapping_sub(1);
     let mut j = h + 1;
     let pivot = a[l];
 
     loop {
         loop {
-            if ineg {
-                ineg = false;
-            } else {
-                i += 1;
-            }
+            i = i.wrapping_add(1);
 
             if a[i] >= pivot {
                 break;
