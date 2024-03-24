@@ -121,21 +121,38 @@ impl<T: Copy + Ord> AdjList<T> {
         Some(nodes)
     }
 
+    pub fn bfs_simple(&self, src: usize, mut cb: impl FnMut(usize)) {
+        let mut visited = vec![false; self.edges.len()];
+        let mut queue = VecDeque::new();
+
+        visited[src] = true;
+        queue.push_back(src);
+
+        while let Some(curr) = queue.pop_front() {
+            cb(curr);
+
+            for edge in &self.edges[curr] {
+                if !visited[edge.node] {
+                    visited[edge.node] = true;
+                    queue.push_back(edge.node);
+                }
+            }
+        }
+    }
+
     pub fn depth_first_search(&self, src: usize, mut cb: impl FnMut(usize)) {
         let mut visited = vec![false; self.edges.len()];
         let mut stack = Vec::new();
 
+        visited[src] = true;
         stack.push(src);
 
         while let Some(curr) = stack.pop() {
-            if !visited[curr] {
-                cb(curr);
-            }
-
-            visited[curr] = true;
+            cb(curr);
 
             for edge in &self.edges[curr] {
                 if !visited[edge.node] {
+                    visited[edge.node] = true;
                     stack.push(edge.node);
                 }
             }
@@ -287,6 +304,32 @@ mod tests {
         let mut collection = vec![];
 
         l.breadth_first_search(2, |i| {
+            collection.push(i);
+        });
+
+        let expected = [2, 1, 3, 0, 4, 5, 6, 7];
+
+        assert_eq!(&expected, collection.as_slice());
+    }
+
+    #[test]
+    fn bfs_3() {
+        let mut l = AdjList::<()>::new();
+
+        l.insert(0, 1, ());
+        l.insert(1, 2, ());
+        l.insert(2, 3, ());
+        l.insert(3, 4, ());
+        l.insert(3, 5, ());
+        l.insert(4, 5, ());
+        l.insert(4, 6, ());
+        l.insert(5, 6, ());
+        l.insert(5, 7, ());
+        l.insert(6, 7, ());
+
+        let mut collection = vec![];
+
+        l.bfs_simple(2, |i| {
             collection.push(i);
         });
 
