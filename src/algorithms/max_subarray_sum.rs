@@ -1,18 +1,18 @@
 #![allow(clippy::needless_range_loop)]
 
 pub fn max_subarray_sum(a: &[i64]) -> (usize, usize, i64) {
-    max_subarray_aux(a, 0, a.len() - 1)
+    max_subarray_rec(a, 0, a.len() - 1)
 }
 
-fn max_subarray_aux(a: &[i64], low: usize, high: usize) -> (usize, usize, i64) {
+fn max_subarray_rec(a: &[i64], low: usize, high: usize) -> (usize, usize, i64) {
     if low == high {
         return (low, high, a[low]);
     }
 
     let mid = low + (high - low) / 2;
 
-    let (left_low, left_high, left_sum) = max_subarray_aux(a, low, mid);
-    let (right_low, right_high, right_sum) = max_subarray_aux(a, mid + 1, high);
+    let (left_low, left_high, left_sum) = max_subarray_rec(a, low, mid);
+    let (right_low, right_high, right_sum) = max_subarray_rec(a, mid + 1, high);
     let (cross_low, cross_high, cross_sum) = find_max_crossing_subarray(a, low, mid, high);
 
     if left_sum >= right_sum && left_sum >= cross_sum {
@@ -62,10 +62,10 @@ fn find_max_crossing_subarray(
 }
 
 pub fn max_subarray_sum_linear(a: &[i64]) -> (usize, usize, i64) {
-    let mut sum = 0;
+    let mut sum = a[0];
     let mut beg = 0;
     let mut end = 0;
-    let mut max_sum = 0;
+    let mut max = 0;
 
     for i in 1..a.len() {
         if sum < 0 {
@@ -76,41 +76,95 @@ pub fn max_subarray_sum_linear(a: &[i64]) -> (usize, usize, i64) {
             sum += a[i];
         }
 
-        if sum > max_sum {
-            max_sum = sum;
+        if sum > max {
+            max = sum;
             end = i;
         }
     }
 
-    (beg, end, max_sum)
+    (beg, end, max)
 }
 
 #[cfg(test)]
 mod tests {
+    use std::ops::Range;
+
     use super::*;
+    use crate::rand::Wyhash64RNG;
 
     const CASE1: &[i64] = &[
         13, -3, -25, 20, -3, -16, -23, 18, 20, -7, 12, -5, -22, 15, -4, 7,
     ];
+    const CASE1_ANS: (usize, usize, i64) = (7, 10, 43);
+
     const CASE2: &[i64] = &[1, -4, 3, -4];
+    const CASE2_ANS: (usize, usize, i64) = (2, 2, 3);
 
     #[test]
-    fn dq_1() {
-        assert_eq!((7, 10, 43), max_subarray_sum(CASE1));
+    fn dq_simple() {
+        assert_eq!(CASE1_ANS, max_subarray_sum(CASE1));
+        assert_eq!(CASE2_ANS, max_subarray_sum(CASE2));
     }
 
     #[test]
-    fn dq_2() {
-        assert_eq!((2, 2, 3), max_subarray_sum(CASE2));
+    fn linear_simple() {
+        assert_eq!(CASE1_ANS, max_subarray_sum_linear(CASE1));
+        assert_eq!(CASE2_ANS, max_subarray_sum_linear(CASE2));
     }
 
     #[test]
-    fn linear_1() {
-        assert_eq!((7, 10, 43), max_subarray_sum_linear(CASE1));
+    fn dq_random() {
+        test_subarray_func(max_subarray_sum);
     }
 
     #[test]
-    fn linear_2() {
-        assert_eq!((2, 2, 3), max_subarray_sum_linear(CASE2));
+    fn linear_random() {
+        test_subarray_func(max_subarray_sum_linear);
+    }
+
+    fn test_subarray_func(func: impl Fn(&[i64]) -> (usize, usize, i64)) {
+        let cases = 20;
+        let sizes = 200;
+        let range = -100..100;
+
+        for _ in 0..cases {
+            let array = generate_array(sizes, &range);
+            let (_, _, ans_naive) = max_subarray_naive(&array);
+            let (_, _, ans_tested) = func(&array);
+
+            assert_eq!(ans_naive, ans_tested);
+        }
+    }
+
+    fn generate_array(n: usize, range: &Range<i64>) -> Vec<i64> {
+        let seed = 123;
+        let mut vec = Vec::with_capacity(n);
+        let mut rng = Wyhash64RNG::from_seed(seed);
+
+        for _ in 0..n {
+            vec.push(rng.gen_in_range_i64(range.clone()));
+        }
+
+        vec
+    }
+
+    fn max_subarray_naive(a: &[i64]) -> (usize, usize, i64) {
+        let mut max_sum = a[0];
+        let mut max_beg = 0;
+        let mut max_end = 0;
+
+        for end in 0..a.len() {
+            for beg in 0..end {
+                let sum = a[beg..end].iter().sum::<i64>();
+
+                if sum > max_sum {
+                    max_sum = sum;
+                    max_beg = beg;
+                    max_end = end;
+                }
+            }
+        }
+
+        (max_beg, max_end, max_sum)
     }
 }
