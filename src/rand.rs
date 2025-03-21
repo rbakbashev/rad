@@ -31,6 +31,15 @@ impl Wyhash64RNG {
 
         min + self.gen() % (max - min)
     }
+
+    #[allow(clippy::cast_possible_wrap)]
+    pub fn gen_in_range_i64(&mut self, range: Range<i64>) -> i64 {
+        let min = range.start;
+        let max = range.end;
+        let gen = self.gen() as i64;
+
+        min + gen.rem_euclid(max - min)
+    }
 }
 
 fn current_time_ns() -> u64 {
@@ -84,6 +93,24 @@ mod tests {
     #[test]
     fn range() {
         test(|r| r.gen_in_range(50..150), (50. + 150.) / 2., true);
+    }
+
+    #[test]
+    fn range_i64() {
+        for seed in 0..TEST_ITER {
+            let mut sum = 0;
+            let mut rng = Wyhash64RNG::from_seed(seed);
+
+            for _ in 0..SUM_ITER {
+                let val = rng.gen_in_range_i64(-100..100);
+                sum += val;
+            }
+
+            #[allow(clippy::cast_precision_loss)]
+            let avg = (sum as f64) / (SUM_ITER as f64);
+
+            assert!(avg.abs() < ERR_EPSILON);
+        }
     }
 
     #[test]
