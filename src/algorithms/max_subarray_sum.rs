@@ -124,7 +124,7 @@ mod tests {
 
     fn test_subarray_func(func: impl Fn(&[i64]) -> (usize, usize, i64)) {
         let cases = 20;
-        let sizes = 200;
+        let sizes = if cfg!(miri) { 50 } else { 200 };
         let range = -100..100;
 
         for _ in 0..cases {

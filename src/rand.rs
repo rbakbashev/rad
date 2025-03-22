@@ -102,7 +102,7 @@ mod tests {
             let mut rng = Wyhash64RNG::from_seed(seed);
 
             for _ in 0..SUM_ITER {
-                let val = rng.gen_in_range_i64(-100..100);
+                let val = rng.gen_in_range_i64(-100..101);
                 sum += val;
             }
 
