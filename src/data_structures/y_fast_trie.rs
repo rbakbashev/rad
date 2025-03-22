@@ -1,6 +1,7 @@
 //! Unfinished x-fast and y-fast tries from Stanford CS166 archives
 
 use std::collections::HashMap;
+use std::fmt::Write;
 
 /// A threaded binary trie where leaves are stored in a doubly-linked list, and all nodes in each
 /// level are stored in a hash table.
@@ -279,41 +280,39 @@ impl XFastTrie {
         }
     }
 
+    #[allow(unused_must_use)]
     pub fn dump_as_graphviz(&self) -> String {
         let mut t = String::new();
 
         t.push_str("digraph g {\n");
         t.push_str("graph [ rankdir = \"TB\" ]\n");
 
-        t.push_str(&format!("{} [ label = \"nil\" ]\n", NIL));
+        writeln!(t, "{} [ label = \"nil\" ]\n", NIL);
 
         for (i, node) in self.nodes.iter().enumerate() {
-            t.push_str(&format!("{i}\n"));
+            writeln!(t, "{i}");
 
             if node.left != NIL {
-                t.push_str(&format!("{i} -> {} [label = 0]\n", node.left));
+                writeln!(t, "{i} -> {} [label = 0]", node.left);
             }
 
             if node.right != NIL {
-                t.push_str(&format!("{i} -> {} [label = 1]\n", node.right));
+                writeln!(t, "{i} -> {} [label = 1]", node.right);
             }
 
             if node.thread != NIL {
-                t.push_str(&format!("{i} -> {}\n", node.thread));
+                writeln!(t, "{i} -> {}", node.thread);
             }
 
             if node.leaf != NIL {
-                t.push_str(&format!("{i} -> leaf{}\n", node.leaf));
+                writeln!(t, "{i} -> leaf{}", node.leaf);
             }
         }
 
         for (i, leaf) in self.leaves.iter().enumerate() {
-            t.push_str(&format!(
-                "leaf{i} [ label = \"{:04b}\" shape=box ]\n",
-                leaf.key
-            ));
-            t.push_str(&format!("leaf{i} -> {}\n", leaf.prev));
-            t.push_str(&format!("leaf{i} -> {}\n", leaf.next));
+            writeln!(t, "leaf{i} [ label = \"{:04b}\" shape=box ]", leaf.key);
+            writeln!(t, "leaf{i} -> {}", leaf.prev);
+            writeln!(t, "leaf{i} -> {}", leaf.next);
         }
 
         t.push('}');
