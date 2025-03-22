@@ -23,13 +23,13 @@ fn select_aux<T: PartialOrd + Copy>(a: &mut [T], l: usize, h: usize, k: usize) -
         insertion_sort(&mut buf);
 
         let n = buf.len();
-        let median = buf[(n + 1) / 2 - 1];
+        let median = buf[n.div_ceil(2) - 1];
 
         medians.push(median);
     }
 
     let ml = medians.len();
-    let mk = (ml + 1) / 2;
+    let mk = ml.div_ceil(2);
     let mm = if ml == 1 {
         medians[0]
     } else {

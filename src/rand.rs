@@ -92,7 +92,7 @@ mod tests {
 
     #[test]
     fn range() {
-        test(|r| r.gen_in_range(50..150), (50. + 150.) / 2., true);
+        test(|r| r.gen_in_range(50..151), f64::midpoint(50., 150.), true);
     }
 
     #[test]
