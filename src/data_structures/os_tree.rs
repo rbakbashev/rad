@@ -587,5 +587,13 @@ mod tests {
         for (k, r) in retained.iter().enumerate() {
             assert_eq!(Some(r), tree.select(k + 1));
         }
+
+        for key in deleted {
+            assert!(!tree.has_key(key));
+        }
+
+        for key in retained {
+            assert!(tree.has_key(&key));
+        }
     }
 }
