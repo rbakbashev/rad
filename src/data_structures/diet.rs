@@ -204,7 +204,6 @@ pub fn insert_range(px: i16, py: i16, d: &Diet) -> Diet {
     }
 }
 
-#[cfg(test)]
 #[test]
 fn test() {
     let mut d = Diet::Empty;

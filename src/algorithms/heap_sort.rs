@@ -1,11 +1,11 @@
 use crate::data_structures::heap::BorrowingHeap;
 
 pub fn heap_sort<T: Ord + Copy>(a: &mut [T]) {
-    let h = BorrowingHeap::from_slice(a);
-    h.sort();
+    let heap = BorrowingHeap::from_slice(a);
+
+    heap.sort();
 }
 
-#[cfg(test)]
 #[test]
 fn test() {
     crate::tests::test_sort(heap_sort);

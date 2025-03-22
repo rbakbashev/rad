@@ -169,7 +169,6 @@ fn intervals_overlap<T: Ord + Copy>(x0: T, x1: T, y0: T, y1: T) -> bool {
     x0 <= y1 && y0 <= x1
 }
 
-#[cfg(test)]
 #[test]
 fn find_intervals() {
     let mut tree = IntervalTree::new();
