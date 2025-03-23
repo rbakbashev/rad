@@ -1,93 +1,94 @@
 use crate::rand::Wyhash64RNG;
 
-pub fn quicksort<T: PartialOrd + Copy>(a: &mut [T]) {
-    if a.len() <= 1 {
+pub fn quicksort<T: PartialOrd + Copy>(arr: &mut [T]) {
+    if arr.len() <= 1 {
         return;
     }
 
-    quicksort_aux(a, 0, a.len() - 1);
+    quicksort_rec(arr, 0, arr.len() - 1);
 }
 
-fn quicksort_aux<T: PartialOrd + Copy>(a: &mut [T], l: usize, h: usize) {
-    if l >= h {
+fn quicksort_rec<T: PartialOrd + Copy>(arr: &mut [T], low: usize, high: usize) {
+    if high <= low {
         return;
     }
 
-    let p = partition_hoare(a, l, h);
+    let p = partition_hoare(arr, low, high);
 
-    quicksort_aux(a, l, p);
-    quicksort_aux(a, p + 1, h);
+    quicksort_rec(arr, low, p);
+    quicksort_rec(arr, p + 1, high);
 }
 
-fn partition_hoare<T: PartialOrd + Copy>(a: &mut [T], l: usize, h: usize) -> usize {
-    let mut i = l.wrapping_sub(1);
-    let mut j = h + 1;
-    let pivot = a[l];
+fn partition_hoare<T: PartialOrd + Copy>(arr: &mut [T], low: usize, high: usize) -> usize {
+    let mut l = low.wrapping_sub(1);
+    let mut r = high.wrapping_add(1);
+
+    let pivot = arr[low];
 
     loop {
         loop {
-            i = i.wrapping_add(1);
+            l = l.wrapping_add(1);
 
-            if a[i] >= pivot {
+            if arr[l] >= pivot {
                 break;
             }
         }
 
         loop {
-            j -= 1;
+            r = r.wrapping_sub(1);
 
-            if a[j] <= pivot {
+            if arr[r] <= pivot {
                 break;
             }
         }
 
-        if i < j {
-            a.swap(i, j);
-        } else {
-            return j;
+        if r <= l {
+            return r;
         }
+
+        arr.swap(l, r);
     }
 }
 
-pub fn randomized_quicksort<T: PartialOrd + Copy>(a: &mut [T]) {
-    if a.len() <= 1 {
+pub fn randomized_quicksort<T: PartialOrd + Copy>(arr: &mut [T]) {
+    if arr.len() <= 1 {
         return;
     }
 
     let mut rng = Wyhash64RNG::from_seed(123);
 
-    randomized_quicksort_aux(a, &mut rng, 0, a.len() - 1);
+    randomized_quicksort_rec(arr, &mut rng, 0, arr.len() - 1);
 }
 
-fn randomized_quicksort_aux<T: PartialOrd + Copy>(
-    a: &mut [T],
+fn randomized_quicksort_rec<T: PartialOrd + Copy>(
+    arr: &mut [T],
     rng: &mut Wyhash64RNG,
-    l: usize,
-    h: usize,
+    low: usize,
+    high: usize,
 ) {
-    if l >= h {
+    if low >= high {
         return;
     }
 
-    let p = randomized_partition(a, rng, l, h);
+    let p = randomized_partition(arr, rng, low, high);
 
-    randomized_quicksort_aux(a, rng, l, p);
-    randomized_quicksort_aux(a, rng, p + 1, h);
+    randomized_quicksort_rec(arr, rng, low, p);
+    randomized_quicksort_rec(arr, rng, p + 1, high);
 }
 
-#[allow(clippy::range_plus_one, clippy::cast_possible_truncation)]
+#[allow(clippy::cast_possible_truncation)]
 fn randomized_partition<T: PartialOrd + Copy>(
-    a: &mut [T],
+    arr: &mut [T],
     rng: &mut Wyhash64RNG,
-    l: usize,
-    h: usize,
+    low: usize,
+    high: usize,
 ) -> usize {
-    let range = (l as u64)..(h as u64);
+    let range = (low as u64)..(high as u64);
     let pivot = rng.gen_in_range(range) as usize;
 
-    a.swap(l, pivot);
+    arr.swap(low, pivot);
 
-    partition_hoare(a, l, h)
+    partition_hoare(arr, low, high)
 }
 
 #[cfg(test)]
