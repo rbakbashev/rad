@@ -1,4 +1,5 @@
 #![allow(
+    clippy::collapsible_else_if,
     clippy::many_single_char_names,
     clippy::missing_const_for_fn,
     clippy::missing_panics_doc,
