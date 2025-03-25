@@ -393,6 +393,44 @@ fn reconstruct_lps(m: &Array2D<usize>, b: &Array2D<PalDirection>, n: usize) -> V
     o
 }
 
+pub fn longest_palindrome_subsequence_2(seq: &str) -> String {
+    let seq = seq.as_bytes();
+
+    /* length of palindrome subsequence of length `l` starting at index `s`:
+     *           | 1                          if l = 1
+     * p[l][s] = < 2 + p[l-2][s+1]            if seq[s] = seq[s+l-1]
+     *           | max(p[l-1][s], p[l-1][s+1] otherwise
+     */
+
+    let mut p = vec![vec![String::new(); seq.len()]; seq.len() + 1];
+
+    for l in 1..=seq.len() {
+        for s in 0..=seq.len() - l {
+            let c = char::from(seq[s]);
+            let a;
+
+            if l == 1 {
+                a = String::from(c);
+            } else if seq[s] == seq[s + l - 1] {
+                a = format!("{}{}{}", c, p[l - 2][s + 1], c);
+            } else {
+                let z = &p[l - 1][s + 1];
+                let o = &p[l - 1][s];
+
+                if z.len() > o.len() {
+                    a = z.clone();
+                } else {
+                    a = o.clone();
+                }
+            }
+
+            p[l][s] = a;
+        }
+    }
+
+    p[seq.len()][0].clone()
+}
+
 #[allow(clippy::cast_possible_wrap)] // CBA
 pub fn printing_neatly(words: &[&'static str], width: isize) -> Vec<String> {
     let n = words.len();
@@ -771,9 +809,20 @@ mod tests {
         let ans = b"carac";
         assert_eq!(ans, longest_palindrome_subsequence(tst).as_slice());
 
-        let tst = b"xdRAfdfCECA123R_";
+        let tst = b"xdRAfdjCECA123R_";
         let ans = b"RACECAR";
         assert_eq!(ans, longest_palindrome_subsequence(tst).as_slice());
+    }
+
+    #[test]
+    fn longest_palindrome_subsequence_2_test() {
+        let tst = "character";
+        let ans = "carac";
+        assert_eq!(ans, longest_palindrome_subsequence_2(tst));
+
+        let tst = "xdRAfdjCECA123R_";
+        let ans = "RACECAR";
+        assert_eq!(ans, longest_palindrome_subsequence_2(tst));
     }
 
     #[test]
