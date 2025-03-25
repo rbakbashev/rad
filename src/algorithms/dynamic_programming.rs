@@ -183,6 +183,42 @@ fn reconstruct_lcs(w: &mut Vec<u8>, b: &Array2D<Direction>, xs: &[u8], x: usize,
     }
 }
 
+pub fn longest_common_subsequence_2(a: &str, b: &str) -> String {
+    let a = a.as_bytes();
+    let b = b.as_bytes();
+
+    /* LCS length for sequences of length i and j:
+     *          | 0                       if i = 0 or j = 0
+     * c[i,j] = < 1 + c[i-1,j-1]          if a[i] == b[j]
+     *          | max(c[i-1,j], c[i,j-1]) otherwise
+     */
+
+    let mut s = vec![vec![String::new(); b.len() + 1]; a.len() + 1];
+
+    for i in 1..=a.len() {
+        for j in 1..=b.len() {
+            let w;
+
+            if a[i - 1] == b[j - 1] {
+                w = format!("{}{}", s[i - 1][j - 1], char::from(a[i - 1]));
+            } else {
+                let u = &s[i - 1][j];
+                let l = &s[i][j - 1];
+
+                if u.len() > l.len() {
+                    w = u.clone();
+                } else {
+                    w = l.clone();
+                }
+            }
+
+            s[i][j] = w;
+        }
+    }
+
+    s[a.len()][b.len()].clone()
+}
+
 pub fn longest_increasing_subsequence(a: &[u64]) -> Vec<u64> {
     let n = a.len();
     let mut m = vec![0; n + 1];
@@ -687,6 +723,24 @@ mod tests {
         let s2 = b"GTCGTTCGGAATGCCGTTGCTCTGTAAA";
         let lcs = b"GTCGTCGGAAGCCGGCCGAA";
         assert_eq!(lcs, longest_common_subsequence(s1, s2).as_slice());
+    }
+
+    #[test]
+    fn longest_common_subsequence_2_test() {
+        let s1 = "springtime";
+        let s2 = "pioneer";
+        let lcs = "pine";
+        assert_eq!(lcs, longest_common_subsequence_2(s1, s2));
+
+        let s1 = "abcbdab";
+        let s2 = "bdcaba";
+        let lcs = "bdab";
+        assert_eq!(lcs, longest_common_subsequence_2(s1, s2));
+
+        let s1 = "ACCGGTCGAGTGCGCGGAAGCCGGCCGAA";
+        let s2 = "GTCGTTCGGAATGCCGTTGCTCTGTAAA";
+        let lcs = "GTCGTCGGAAGCCGGCCGAA";
+        assert_eq!(lcs, longest_common_subsequence_2(s1, s2));
     }
 
     #[test]
