@@ -10,6 +10,12 @@ struct LinkedList<V> {
     data: Vec<(V, usize)>,
 }
 
+pub struct HashMapChainingSingleList<V: Clone> {
+    data: Vec<usize>,
+    list: Vec<(V, usize)>,
+    recycled: Vec<usize>,
+}
+
 impl<V: Clone> HashMapDirectAddressing<V> {
     pub fn new(size: usize) -> Self {
         Self {
@@ -105,6 +111,75 @@ impl<V: Clone> LinkedList<V> {
     }
 }
 
+impl<V: Clone> HashMapChainingSingleList<V> {
+    const NIL: usize = usize::MAX;
+    const SLOTS_BASE: u32 = 14;
+    const _BASE_ASSERT: () = assert!(Self::SLOTS_BASE < 32);
+    const SLOTS: usize = 2_usize.pow(Self::SLOTS_BASE);
+
+    #[allow(clippy::unreadable_literal)]
+    fn hash_mult_shift(key: u32) -> usize {
+        let hash = key.wrapping_mul(2654435769) >> (32 - Self::SLOTS_BASE);
+        hash as usize
+    }
+
+    pub fn new() -> Self {
+        Self {
+            data: vec![Self::NIL; Self::SLOTS],
+            list: vec![],
+            recycled: vec![],
+        }
+    }
+
+    pub fn insert<K: Into<u32>>(&mut self, key: K, value: V) {
+        let hash = Self::hash_mult_shift(key.into());
+        let curr = self.data[hash];
+        let node = self.allocate_node(value, curr);
+
+        self.data[hash] = node;
+    }
+
+    fn allocate_node(&mut self, value: V, next: usize) -> usize {
+        let cons = (value, next);
+
+        if let Some(idx) = self.recycled.pop() {
+            self.list[idx] = cons;
+            return idx;
+        }
+
+        self.list.push(cons);
+
+        self.list.len() - 1
+    }
+
+    pub fn delete<K: Into<u32>>(&mut self, key: K) {
+        let hash = Self::hash_mult_shift(key.into());
+        let curr = self.data[hash];
+
+        if curr == Self::NIL {
+            return;
+        }
+
+        let next = self.list[curr].1;
+
+        self.data[hash] = next;
+        self.recycled.push(curr);
+    }
+
+    pub fn search<K: Into<u32>>(&mut self, key: K) -> Option<V> {
+        let hash = Self::hash_mult_shift(key.into());
+        let curr = self.data[hash];
+
+        if curr == Self::NIL {
+            return None;
+        }
+
+        let node = self.data[hash];
+
+        Some(self.list[node].0.clone())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -152,6 +227,27 @@ mod tests {
     }
 
     impl<K, V: Clone> HashMapOps<K, V> for HashMapChaining<V>
+    where
+        K: Into<u32>,
+    {
+        fn new(_optional_size: usize) -> Self {
+            Self::new()
+        }
+
+        fn insert(&mut self, key: K, value: V) {
+            self.insert(key, value);
+        }
+
+        fn delete(&mut self, key: K) {
+            self.delete(key);
+        }
+
+        fn search(&mut self, key: K) -> Option<V> {
+            Self::search(self, key)
+        }
+    }
+
+    impl<K, V: Clone> HashMapOps<K, V> for HashMapChainingSingleList<V>
     where
         K: Into<u32>,
     {
@@ -223,5 +319,10 @@ mod tests {
     #[test]
     fn chaining() {
         test_hash_map::<HashMapChaining<i32>>();
+    }
+
+    #[test]
+    fn single_list() {
+        test_hash_map::<HashMapChainingSingleList<i32>>();
     }
 }
