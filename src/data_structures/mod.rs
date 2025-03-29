@@ -6,6 +6,7 @@ pub mod diet;
 pub mod doubly_linked_list;
 pub mod fib_heap;
 pub mod graphs;
+pub mod hash_table;
 pub mod heap;
 pub mod interval_tree;
 pub mod linked_list;
