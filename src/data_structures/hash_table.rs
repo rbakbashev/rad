@@ -188,7 +188,7 @@ impl<V> HashMapChainingSingleList<V> {
 mod tests {
     use super::*;
     use crate::rand::Wyhash64RNG;
-    use std::collections::HashMap as HashMapStd;
+    use std::collections::{HashMap as HashMapStd, HashSet};
 
     const SIZE: usize = 123;
     const SEED: u64 = 321;
@@ -268,11 +268,11 @@ mod tests {
         let mut std = HashMapStd::new();
         let mut map = HashMapTested::new(SIZE);
         let mut rng = Wyhash64RNG::from_seed(SEED);
+        let mut ins = HashSet::new();
         let mut del = Vec::new();
 
         for _ in 0..ADDS / 2 {
-            let key = rng.gen_in_range(0..SIZE as u64) as u8;
-            let val = rng.gen_in_range_i64(-SPAN..SPAN) as i32;
+            let (key, val) = generate_unique_key(&mut rng, &mut ins);
 
             std.insert(key, val);
             map.insert(key, val);
@@ -288,8 +288,7 @@ mod tests {
         }
 
         for _ in 0..ADDS / 2 {
-            let key = rng.gen_in_range(0..SIZE as u64) as u8;
-            let val = rng.gen_in_range_i64(-SPAN..SPAN) as i32;
+            let (key, val) = generate_unique_key(&mut rng, &mut ins);
 
             std.insert(key, val);
             map.insert(key, val);
@@ -303,9 +302,25 @@ mod tests {
         }
 
         for del_key in del {
-            if map.search(del_key).is_none() {
+            if !std.contains_key(&del_key) {
                 assert_eq!(None, map.search(del_key));
             }
+        }
+    }
+
+    #[allow(clippy::cast_possible_truncation)]
+    fn generate_unique_key(rng: &mut Wyhash64RNG, inserted: &mut HashSet<u8>) -> (u8, i32) {
+        loop {
+            let key = rng.gen_in_range(0..SIZE as u64) as u8;
+            let val = rng.gen_in_range_i64(-SPAN..SPAN) as i32;
+
+            if inserted.contains(&key) {
+                continue;
+            }
+
+            inserted.insert(key);
+
+            return (key, val);
         }
     }
 
