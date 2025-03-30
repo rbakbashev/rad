@@ -1,8 +1,8 @@
-pub struct HashMapDirectAddressing<V: Clone> {
+pub struct HashMapDirectAddressing<V> {
     data: Vec<Option<V>>,
 }
 
-pub struct HashMapChaining<V: Clone> {
+pub struct HashMapChaining<V> {
     lists: Vec<LinkedList<V>>,
 }
 
@@ -10,17 +10,21 @@ struct LinkedList<V> {
     data: Vec<(V, usize)>,
 }
 
-pub struct HashMapChainingSingleList<V: Clone> {
+pub struct HashMapChainingSingleList<V> {
     data: Vec<usize>,
     list: Vec<(V, usize)>,
     recycled: Vec<usize>,
 }
 
-impl<V: Clone> HashMapDirectAddressing<V> {
+impl<V> HashMapDirectAddressing<V> {
     pub fn new(size: usize) -> Self {
-        Self {
-            data: vec![None; size],
+        let mut data = Vec::with_capacity(size);
+
+        for _ in 0..size {
+            data.push(None);
         }
+
+        Self { data }
     }
 
     pub fn insert<K: Into<usize>>(&mut self, key: K, value: V) {
@@ -31,12 +35,12 @@ impl<V: Clone> HashMapDirectAddressing<V> {
         self.data[key.into()] = None;
     }
 
-    pub fn search<K: Into<usize>>(&self, key: K) -> Option<V> {
-        self.data[key.into()].clone()
+    pub fn search<K: Into<usize>>(&self, key: K) -> Option<&V> {
+        self.data[key.into()].as_ref()
     }
 }
 
-impl<V: Clone> HashMapChaining<V> {
+impl<V> HashMapChaining<V> {
     const SLOTS_BASE: u32 = 14;
     const _BASE_ASSERT: () = assert!(Self::SLOTS_BASE < 32);
     const SLOTS: usize = 2_usize.pow(Self::SLOTS_BASE);
@@ -67,13 +71,13 @@ impl<V: Clone> HashMapChaining<V> {
         self.lists[hash].pop();
     }
 
-    pub fn search<K: Into<u32>>(&self, key: K) -> Option<V> {
+    pub fn search<K: Into<u32>>(&self, key: K) -> Option<&V> {
         let hash = Self::hash_mult_shift(key.into());
         self.lists[hash].last()
     }
 }
 
-impl<V: Clone> LinkedList<V> {
+impl<V> LinkedList<V> {
     const NIL: usize = usize::MAX;
 
     fn empty() -> Self {
@@ -103,15 +107,15 @@ impl<V: Clone> LinkedList<V> {
         self.data.pop();
     }
 
-    fn last(&self) -> Option<V> {
+    fn last(&self) -> Option<&V> {
         match self.data.as_slice() {
             [] => None,
-            [.., (val, _next)] => Some(val.clone()),
+            [.., (val, _next)] => Some(val),
         }
     }
 }
 
-impl<V: Clone> HashMapChainingSingleList<V> {
+impl<V> HashMapChainingSingleList<V> {
     const NIL: usize = usize::MAX;
     const SLOTS_BASE: u32 = 14;
     const _BASE_ASSERT: () = assert!(Self::SLOTS_BASE < 32);
@@ -166,7 +170,7 @@ impl<V: Clone> HashMapChainingSingleList<V> {
         self.recycled.push(curr);
     }
 
-    pub fn search<K: Into<u32>>(&mut self, key: K) -> Option<V> {
+    pub fn search<K: Into<u32>>(&mut self, key: K) -> Option<&V> {
         let hash = Self::hash_mult_shift(key.into());
         let curr = self.data[hash];
 
@@ -176,7 +180,7 @@ impl<V: Clone> HashMapChainingSingleList<V> {
 
         let node = self.data[hash];
 
-        Some(self.list[node].0.clone())
+        Some(&self.list[node].0)
     }
 }
 
@@ -198,17 +202,14 @@ mod tests {
     };
 
     // This wrapper trait exists to 1) keep implementations clean, 2) create a generic testing func
-    trait HashMapOps<K, V: Clone> {
+    trait HashMapOps<K, V> {
         fn new(optional_size: usize) -> Self;
         fn insert(&mut self, key: K, value: V);
         fn delete(&mut self, key: K);
-        fn search(&mut self, key: K) -> Option<V>;
+        fn search(&mut self, key: K) -> Option<&V>;
     }
 
-    impl<K, V: Clone> HashMapOps<K, V> for HashMapDirectAddressing<V>
-    where
-        K: Into<usize>,
-    {
+    impl<K: Into<usize>, V> HashMapOps<K, V> for HashMapDirectAddressing<V> {
         fn new(optional_size: usize) -> Self {
             Self::new(optional_size)
         }
@@ -221,15 +222,12 @@ mod tests {
             self.delete(key);
         }
 
-        fn search(&mut self, key: K) -> Option<V> {
+        fn search(&mut self, key: K) -> Option<&V> {
             Self::search(self, key)
         }
     }
 
-    impl<K, V: Clone> HashMapOps<K, V> for HashMapChaining<V>
-    where
-        K: Into<u32>,
-    {
+    impl<K: Into<u32>, V> HashMapOps<K, V> for HashMapChaining<V> {
         fn new(_optional_size: usize) -> Self {
             Self::new()
         }
@@ -242,15 +240,12 @@ mod tests {
             self.delete(key);
         }
 
-        fn search(&mut self, key: K) -> Option<V> {
+        fn search(&mut self, key: K) -> Option<&V> {
             Self::search(self, key)
         }
     }
 
-    impl<K, V: Clone> HashMapOps<K, V> for HashMapChainingSingleList<V>
-    where
-        K: Into<u32>,
-    {
+    impl<K: Into<u32>, V> HashMapOps<K, V> for HashMapChainingSingleList<V> {
         fn new(_optional_size: usize) -> Self {
             Self::new()
         }
@@ -263,7 +258,7 @@ mod tests {
             self.delete(key);
         }
 
-        fn search(&mut self, key: K) -> Option<V> {
+        fn search(&mut self, key: K) -> Option<&V> {
             Self::search(self, key)
         }
     }
@@ -301,7 +296,7 @@ mod tests {
         }
 
         for (key, val) in nat {
-            assert_eq!(Some(val), map.search(key));
+            assert_eq!(Some(&val), map.search(key));
         }
 
         for del_key in del {
