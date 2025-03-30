@@ -6,7 +6,6 @@ pub struct Wyhash64RNG {
 }
 
 impl Wyhash64RNG {
-    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self::from_seed(current_time_ns())
     }

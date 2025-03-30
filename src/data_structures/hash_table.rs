@@ -1,3 +1,5 @@
+#![allow(clippy::unreadable_literal)]
+
 pub struct HashMapDirectAddressing<V> {
     data: Vec<Option<V>>,
 }
@@ -45,7 +47,6 @@ impl<V> HashMapChaining<V> {
     const _BASE_ASSERT: () = assert!(Self::SLOTS_BASE < 32);
     const SLOTS: usize = 2_usize.pow(Self::SLOTS_BASE);
 
-    #[allow(clippy::unreadable_literal)]
     fn hash_mult_shift(key: u32) -> usize {
         let hash = key.wrapping_mul(2654435769) >> (32 - Self::SLOTS_BASE);
         hash as usize
@@ -121,7 +122,6 @@ impl<V> HashMapChainingSingleList<V> {
     const _BASE_ASSERT: () = assert!(Self::SLOTS_BASE < 32);
     const SLOTS: usize = 2_usize.pow(Self::SLOTS_BASE);
 
-    #[allow(clippy::unreadable_literal)]
     fn hash_mult_shift(key: u32) -> usize {
         let hash = key.wrapping_mul(2654435769) >> (32 - Self::SLOTS_BASE);
         hash as usize
