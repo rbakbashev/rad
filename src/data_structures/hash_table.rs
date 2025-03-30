@@ -265,7 +265,7 @@ mod tests {
 
     #[allow(clippy::cast_possible_truncation)]
     fn test_hash_map<HashMapTested: HashMapOps<u8, i32>>() {
-        let mut nat = HashMapStd::new();
+        let mut std = HashMapStd::new();
         let mut map = HashMapTested::new(SIZE);
         let mut rng = Wyhash64RNG::from_seed(SEED);
         let mut del = Vec::new();
@@ -274,14 +274,14 @@ mod tests {
             let key = rng.gen_in_range(0..SIZE as u64) as u8;
             let val = rng.gen_in_range_i64(-SPAN..SPAN) as i32;
 
-            nat.insert(key, val);
+            std.insert(key, val);
             map.insert(key, val);
         }
 
         for _ in 0..DELS {
             let key = rng.gen_in_range(0..SIZE as u64) as u8;
 
-            nat.remove(&key);
+            std.remove(&key);
             map.delete(key);
 
             del.push(key);
@@ -291,12 +291,15 @@ mod tests {
             let key = rng.gen_in_range(0..SIZE as u64) as u8;
             let val = rng.gen_in_range_i64(-SPAN..SPAN) as i32;
 
-            nat.insert(key, val);
+            std.insert(key, val);
             map.insert(key, val);
         }
 
-        for (key, val) in nat {
-            assert_eq!(Some(&val), map.search(key));
+        let mut key_values = std.iter().collect::<Vec<_>>();
+        key_values.sort();
+
+        for (key, val) in key_values {
+            assert_eq!(Some(val), map.search(*key));
         }
 
         for del_key in del {
