@@ -265,7 +265,7 @@ fn hash_mult_shift(key: u32, slots_base: u32) -> u32 {
 mod tests {
     use super::*;
     use crate::rand::Wyhash64RNG;
-    use std::collections::{HashMap as HashMapStd, HashSet};
+    use std::collections::{HashMap as HashMapStd, VecDeque};
 
     const SIZE: usize = 123;
     const SEED: u64 = 321;
@@ -277,6 +277,13 @@ mod tests {
         assert!(SIZE < u8::MAX as usize);
         assert!(SPAN < i32::MAX as i64);
     };
+
+    #[derive(Clone, Copy)]
+    enum DeletionOrder {
+        First,
+        Last,
+        All,
+    }
 
     // This wrapper trait exists to 1) keep implementations clean, 2) create a generic testing func
     trait HashMapOps<K, V> {
@@ -359,83 +366,96 @@ mod tests {
     }
 
     #[allow(clippy::cast_possible_truncation)]
-    fn test_hash_map<HashMapTested: HashMapOps<u8, i32>>() {
+    fn test_hash_map<HashMapTested: HashMapOps<u8, i32>>(order: DeletionOrder) {
         let mut std = HashMapStd::new();
         let mut map = HashMapTested::new(SIZE);
         let mut rng = Wyhash64RNG::from_seed(SEED);
-        let mut ins = HashSet::new();
-        let mut del = Vec::new();
 
         for _ in 0..ADDS / 2 {
-            let (key, val) = generate_unique_key(&mut rng, &mut ins);
+            let key = rng.gen_in_range(0..SIZE as u64) as u8;
+            let val = rng.gen_in_range_i64(-SPAN..SPAN) as i32;
 
-            std.insert(key, val);
             map.insert(key, val);
+            store(&mut std, key, val);
         }
 
         for _ in 0..DELS {
             let key = rng.gen_in_range(0..SIZE as u64) as u8;
 
-            std.remove(&key);
             map.delete(key);
-
-            del.push(key);
+            delete(&mut std, key, order);
         }
 
         for _ in 0..ADDS / 2 {
-            let (key, val) = generate_unique_key(&mut rng, &mut ins);
-
-            std.insert(key, val);
-            map.insert(key, val);
-        }
-
-        let mut key_values = std.iter().collect::<Vec<_>>();
-        key_values.sort();
-
-        for (key, val) in key_values {
-            assert_eq!(Some(val), map.search(*key));
-        }
-
-        for del_key in del {
-            if !std.contains_key(&del_key) {
-                assert_eq!(None, map.search(del_key));
-            }
-        }
-    }
-
-    #[allow(clippy::cast_possible_truncation)]
-    fn generate_unique_key(rng: &mut Wyhash64RNG, inserted: &mut HashSet<u8>) -> (u8, i32) {
-        loop {
             let key = rng.gen_in_range(0..SIZE as u64) as u8;
             let val = rng.gen_in_range_i64(-SPAN..SPAN) as i32;
 
-            if inserted.contains(&key) {
+            map.insert(key, val);
+            store(&mut std, key, val);
+        }
+
+        for (key, values) in sorted_key_values(std) {
+            let map_val = map.search(key);
+
+            if values.is_empty() && map_val.is_none() {
                 continue;
             }
 
-            inserted.insert(key);
+            let mut found = false;
 
-            return (key, val);
+            for value in values {
+                if map_val.is_some_and(|&map_val| map_val == value) {
+                    found = true;
+                }
+            }
+
+            assert!(found);
         }
+    }
+
+    fn store(std: &mut HashMapStd<u8, VecDeque<i32>>, key: u8, val: i32) {
+        std.entry(key)
+            .and_modify(|v| v.push_back(val))
+            .or_insert_with(|| VecDeque::from([val]));
+    }
+
+    fn delete(std: &mut HashMapStd<u8, VecDeque<i32>>, key: u8, order: DeletionOrder) {
+        std.entry(key)
+            .and_modify(|v| delete_from_list(v, order))
+            .or_default();
+    }
+
+    fn delete_from_list(vec: &mut VecDeque<i32>, order: DeletionOrder) {
+        match order {
+            DeletionOrder::First => _ = vec.pop_front(),
+            DeletionOrder::Last => _ = vec.pop_back(),
+            DeletionOrder::All => vec.clear(),
+        }
+    }
+
+    fn sorted_key_values<K: Ord, V: Ord>(map: HashMapStd<K, V>) -> Vec<(K, V)> {
+        let mut kv = map.into_iter().collect::<Vec<_>>();
+        kv.sort();
+        kv
     }
 
     #[test]
     fn direct_addressing() {
-        test_hash_map::<HashMapDirectAddressing<i32>>();
+        test_hash_map::<HashMapDirectAddressing<i32>>(DeletionOrder::All);
     }
 
     #[test]
     fn chaining() {
-        test_hash_map::<HashMapChaining<i32>>();
+        test_hash_map::<HashMapChaining<i32>>(DeletionOrder::Last);
     }
 
     #[test]
     fn single_list() {
-        test_hash_map::<HashMapChainingSingleList<i32>>();
+        test_hash_map::<HashMapChainingSingleList<i32>>(DeletionOrder::Last);
     }
 
     #[test]
     fn open_addressing() {
-        test_hash_map::<HashMapLinearProbing<i32>>();
+        test_hash_map::<HashMapLinearProbing<i32>>(DeletionOrder::First);
     }
 }
