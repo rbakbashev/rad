@@ -18,6 +18,10 @@ pub struct HashMapChainingSingleList<V> {
     recycled: Vec<usize>,
 }
 
+pub struct HashMapLinearProbing<V: Clone> {
+    data: Vec<Option<(u32, V)>>,
+}
+
 impl<V> HashMapDirectAddressing<V> {
     pub fn new(size: usize) -> Self {
         let mut data = Vec::with_capacity(size);
@@ -170,7 +174,7 @@ impl<V> HashMapChainingSingleList<V> {
         self.recycled.push(curr);
     }
 
-    pub fn search<K: Into<u32>>(&mut self, key: K) -> Option<&V> {
+    pub fn search<K: Into<u32>>(&self, key: K) -> Option<&V> {
         let hash = Self::hash_mult_shift(key.into());
         let curr = self.data[hash];
 
@@ -181,6 +185,120 @@ impl<V> HashMapChainingSingleList<V> {
         let node = self.data[hash];
 
         Some(&self.list[node].0)
+    }
+}
+
+impl<V: Clone> HashMapLinearProbing<V> {
+    const SLOTS_BASE: u32 = 14;
+    const _BASE_ASSERT: () = assert!(Self::SLOTS_BASE < 32);
+    const SLOTS: usize = 2_usize.pow(Self::SLOTS_BASE);
+
+    fn hash_mult_shift(key: u32) -> u32 {
+        key.wrapping_mul(2654435769) >> (32 - Self::SLOTS_BASE)
+    }
+
+    fn hash_linear_probe(key: u32, i: u32) -> usize {
+        (Self::hash_mult_shift(key) + i) as usize % Self::SLOTS
+    }
+
+    #[allow(clippy::cast_possible_truncation)]
+    fn hash_inverse(key: u32, idx: usize) -> u32 {
+        let i = (idx - Self::hash_mult_shift(key) as usize) % Self::SLOTS;
+        i as u32
+    }
+
+    pub fn new() -> Self {
+        let mut data = Vec::with_capacity(Self::SLOTS);
+
+        for _ in 0..Self::SLOTS {
+            data.push(None);
+        }
+
+        Self { data }
+    }
+
+    pub fn insert<K: Into<u32>>(&mut self, key: K, value: V) -> Option<usize> {
+        let key = key.into();
+        let mut i = 0;
+
+        loop {
+            let idx = Self::hash_linear_probe(key, i);
+
+            if self.data[idx].is_none() {
+                self.data[idx] = Some((key, value));
+                return Some(idx);
+            }
+
+            i += 1;
+
+            if i as usize == Self::SLOTS {
+                return None;
+            }
+        }
+    }
+
+    pub fn search<K: Into<u32>>(&self, key: K) -> Option<&V> {
+        let (_idx, (_key, value)) = self.search_linear(key)?;
+
+        Some(value)
+    }
+
+    fn search_linear<K: Into<u32>>(&self, key: K) -> Option<(usize, &(u32, V))> {
+        let key = key.into();
+        let mut i = 0;
+
+        loop {
+            let idx = Self::hash_linear_probe(key, i);
+            let slot = self.data[idx].as_ref();
+
+            if let Some(pair @ (slot_key, _value)) = slot {
+                if *slot_key == key {
+                    return Some((idx, pair));
+                }
+            }
+
+            i += 1;
+
+            if slot.is_none() || i as usize == Self::SLOTS {
+                return None;
+            }
+        }
+    }
+
+    pub fn delete<K: Into<u32>>(&mut self, key: K) {
+        let Some((idx, ..)) = self.search_linear(key) else {
+            return;
+        };
+
+        self.delete_linear(idx);
+    }
+
+    fn delete_linear(&mut self, mut idx: usize) {
+        let mut next;
+        let mut slot;
+
+        loop {
+            self.data[idx] = None;
+
+            next = idx;
+
+            loop {
+                next = (next + 1) % Self::SLOTS;
+                slot = &self.data[next];
+
+                match slot {
+                    None => return,
+                    Some((k, _v)) => {
+                        if Self::hash_inverse(*k, idx) < Self::hash_inverse(*k, next) {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            self.data[idx] = slot.clone();
+            idx = next;
+        }
     }
 }
 
@@ -246,6 +364,24 @@ mod tests {
     }
 
     impl<K: Into<u32>, V> HashMapOps<K, V> for HashMapChainingSingleList<V> {
+        fn new(_optional_size: usize) -> Self {
+            Self::new()
+        }
+
+        fn insert(&mut self, key: K, value: V) {
+            self.insert(key, value);
+        }
+
+        fn delete(&mut self, key: K) {
+            self.delete(key);
+        }
+
+        fn search(&mut self, key: K) -> Option<&V> {
+            Self::search(self, key)
+        }
+    }
+
+    impl<K: Into<u32>, V: Clone> HashMapOps<K, V> for HashMapLinearProbing<V> {
         fn new(_optional_size: usize) -> Self {
             Self::new()
         }
@@ -337,5 +473,10 @@ mod tests {
     #[test]
     fn single_list() {
         test_hash_map::<HashMapChainingSingleList<i32>>();
+    }
+
+    #[test]
+    fn open_addressing() {
+        test_hash_map::<HashMapLinearProbing<i32>>();
     }
 }
