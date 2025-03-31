@@ -1,5 +1,3 @@
-#![allow(clippy::unreadable_literal)]
-
 pub struct HashMapDirectAddressing<V> {
     data: Vec<Option<V>>,
 }
@@ -51,9 +49,8 @@ impl<V> HashMapChaining<V> {
     const _BASE_ASSERT: () = assert!(Self::SLOTS_BASE < 32);
     const SLOTS: usize = 2_usize.pow(Self::SLOTS_BASE);
 
-    fn hash_mult_shift(key: u32) -> usize {
-        let hash = key.wrapping_mul(2654435769) >> (32 - Self::SLOTS_BASE);
-        hash as usize
+    fn hash(key: u32) -> usize {
+        hash_mult_shift(key, Self::SLOTS_BASE) as usize
     }
 
     pub fn new() -> Self {
@@ -67,17 +64,17 @@ impl<V> HashMapChaining<V> {
     }
 
     pub fn insert<K: Into<u32>>(&mut self, key: K, value: V) {
-        let hash = Self::hash_mult_shift(key.into());
+        let hash = Self::hash(key.into());
         self.lists[hash].insert(value);
     }
 
     pub fn delete<K: Into<u32>>(&mut self, key: K) {
-        let hash = Self::hash_mult_shift(key.into());
+        let hash = Self::hash(key.into());
         self.lists[hash].pop();
     }
 
     pub fn search<K: Into<u32>>(&self, key: K) -> Option<&V> {
-        let hash = Self::hash_mult_shift(key.into());
+        let hash = Self::hash(key.into());
         self.lists[hash].last()
     }
 }
@@ -126,9 +123,8 @@ impl<V> HashMapChainingSingleList<V> {
     const _BASE_ASSERT: () = assert!(Self::SLOTS_BASE < 32);
     const SLOTS: usize = 2_usize.pow(Self::SLOTS_BASE);
 
-    fn hash_mult_shift(key: u32) -> usize {
-        let hash = key.wrapping_mul(2654435769) >> (32 - Self::SLOTS_BASE);
-        hash as usize
+    fn hash(key: u32) -> usize {
+        hash_mult_shift(key, Self::SLOTS_BASE) as usize
     }
 
     pub fn new() -> Self {
@@ -140,7 +136,7 @@ impl<V> HashMapChainingSingleList<V> {
     }
 
     pub fn insert<K: Into<u32>>(&mut self, key: K, value: V) {
-        let hash = Self::hash_mult_shift(key.into());
+        let hash = Self::hash(key.into());
         let curr = self.data[hash];
         let node = self.allocate_node(value, curr);
 
@@ -161,7 +157,7 @@ impl<V> HashMapChainingSingleList<V> {
     }
 
     pub fn delete<K: Into<u32>>(&mut self, key: K) {
-        let hash = Self::hash_mult_shift(key.into());
+        let hash = Self::hash(key.into());
         let curr = self.data[hash];
 
         if curr == Self::NIL {
@@ -175,7 +171,7 @@ impl<V> HashMapChainingSingleList<V> {
     }
 
     pub fn search<K: Into<u32>>(&self, key: K) -> Option<&V> {
-        let hash = Self::hash_mult_shift(key.into());
+        let hash = Self::hash(key.into());
         let curr = self.data[hash];
 
         if curr == Self::NIL {
@@ -193,17 +189,17 @@ impl<V: Clone> HashMapLinearProbing<V> {
     const _BASE_ASSERT: () = assert!(Self::SLOTS_BASE < 32);
     const SLOTS: usize = 2_usize.pow(Self::SLOTS_BASE);
 
-    fn hash_mult_shift(key: u32) -> u32 {
-        key.wrapping_mul(2654435769) >> (32 - Self::SLOTS_BASE)
+    fn hash(key: u32) -> u32 {
+        hash_mult_shift(key, Self::SLOTS_BASE)
     }
 
     fn hash_linear_probe(key: u32, i: u32) -> usize {
-        (Self::hash_mult_shift(key) + i) as usize % Self::SLOTS
+        (Self::hash(key) + i) as usize % Self::SLOTS
     }
 
     #[allow(clippy::cast_possible_truncation)]
     fn hash_inverse(key: u32, idx: usize) -> u32 {
-        let i = (idx - Self::hash_mult_shift(key) as usize) % Self::SLOTS;
+        let i = (idx - Self::hash(key) as usize) % Self::SLOTS;
         i as u32
     }
 
@@ -300,6 +296,11 @@ impl<V: Clone> HashMapLinearProbing<V> {
             idx = next;
         }
     }
+}
+
+#[allow(clippy::unreadable_literal)]
+fn hash_mult_shift(key: u32, slots_base: u32) -> u32 {
+    key.wrapping_mul(2654435769) >> (32 - slots_base)
 }
 
 #[cfg(test)]
