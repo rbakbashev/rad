@@ -12,6 +12,7 @@ pub mod interval_tree;
 pub mod linked_list;
 pub mod linked_list_unsafe;
 pub mod os_tree;
+pub mod perfect_hashing;
 pub mod priority_queue;
 pub mod rb_tree;
 pub mod veb_tree;

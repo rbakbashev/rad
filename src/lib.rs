@@ -19,6 +19,9 @@
         clippy::explicit_iter_loop,
     )
 )]
+// remove when Vectors become const stable
+#![allow(internal_features)]
+#![feature(const_heap, core_intrinsics)]
 
 pub mod algorithms;
 pub mod data_structures;
