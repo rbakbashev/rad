@@ -5,6 +5,10 @@ pub struct Wyhash64RNG {
     state: u64,
 }
 
+pub struct Wyhash32RNG {
+    seed: u64,
+}
+
 impl Wyhash64RNG {
     pub fn new() -> Self {
         Self::from_seed(current_time_ns())
@@ -41,6 +45,29 @@ impl Wyhash64RNG {
     }
 }
 
+impl Wyhash32RNG {
+    pub const fn from_seed(seed: u64) -> Self {
+        Self { seed }
+    }
+
+    pub const fn gen(&mut self) -> u64 {
+        self.seed = self.seed.wrapping_add(0xa076_1d64_78bd_642f);
+
+        let mut see1 = self.seed ^ 0xe703_7ed1_a0b4_28db;
+
+        see1 = see1.wrapping_mul(rot(see1));
+
+        self.seed.wrapping_mul(rot(self.seed)) ^ rot(see1)
+    }
+
+    pub const fn gen_in_range(&mut self, range: Range<u64>) -> u64 {
+        let min = range.start;
+        let max = range.end;
+
+        min + self.gen() % (max - min)
+    }
+}
+
 fn current_time_ns() -> u64 {
     let now = time::SystemTime::now();
     let full = now
@@ -48,6 +75,10 @@ fn current_time_ns() -> u64 {
         .expect("Current time before Unix epoch");
 
     u64::from(full.subsec_nanos())
+}
+
+const fn rot(x: u64) -> u64 {
+    x.rotate_left(32)
 }
 
 #[cfg(test)]
@@ -58,15 +89,38 @@ mod tests {
     const SUM_ITER: u64 = if cfg!(miri) { 10_000 } else { 1_000_000 };
     const ERR_EPSILON: f64 = 1.;
 
-    type GenCb = fn(&mut Wyhash64RNG) -> u64;
+    trait Generator {
+        fn new() -> Self;
+        fn from_seed(seed: u64) -> Self;
+    }
 
-    fn test(f: GenCb, mexp: f64, fixed_seed: bool) {
+    impl Generator for Wyhash64RNG {
+        fn new() -> Self {
+            Self::new()
+        }
+
+        fn from_seed(seed: u64) -> Self {
+            Self::from_seed(seed)
+        }
+    }
+
+    impl Generator for Wyhash32RNG {
+        fn new() -> Self {
+            Self::from_seed(1)
+        }
+
+        fn from_seed(seed: u64) -> Self {
+            Self::from_seed(seed)
+        }
+    }
+
+    fn test<R: Generator>(mut f: impl FnMut(&mut R) -> u64, mexp: f64, fixed_seed: bool) {
         for seed in 0..TEST_ITER {
             let mut sum = 0;
             let mut rng = if fixed_seed {
-                Wyhash64RNG::from_seed(seed)
+                R::from_seed(seed)
             } else {
-                Wyhash64RNG::new()
+                R::new()
             };
 
             for _ in 0..SUM_ITER {
@@ -86,12 +140,12 @@ mod tests {
 
     #[test]
     fn simple() {
-        test(|r| 1 + r.gen() % 100, 100. / 2., true);
+        test::<Wyhash64RNG>(|r| 1 + r.gen() % 100, 100. / 2., true);
     }
 
     #[test]
     fn range() {
-        test(|r| r.gen_in_range(50..151), f64::midpoint(50., 150.), true);
+        test::<Wyhash64RNG>(|r| r.gen_in_range(50..151), f64::midpoint(50., 150.), true);
     }
 
     #[test]
@@ -115,6 +169,16 @@ mod tests {
     #[test]
     #[cfg(not(miri))]
     fn from_time() {
-        test(|r| 1 + r.gen() % 100, 100. / 2., false);
+        test::<Wyhash64RNG>(|r| 1 + r.gen() % 100, 100. / 2., false);
+    }
+
+    #[test]
+    fn simple32() {
+        test::<Wyhash32RNG>(|r| 1 + r.gen() % 100, 100. / 2., true);
+    }
+
+    #[test]
+    fn range32() {
+        test::<Wyhash32RNG>(|r| r.gen_in_range(50..151), f64::midpoint(50., 150.), true);
     }
 }
