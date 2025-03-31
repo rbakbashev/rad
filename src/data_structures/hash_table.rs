@@ -3,11 +3,7 @@ pub struct HashMapDirectAddressing<V> {
 }
 
 pub struct HashMapChaining<V> {
-    lists: Vec<LinkedList<V>>,
-}
-
-struct LinkedList<V> {
-    data: Vec<(V, usize)>,
+    lists: Vec<Vec<V>>,
 }
 
 pub struct HashMapChainingSingleList<V> {
@@ -57,7 +53,7 @@ impl<V> HashMapChaining<V> {
         let mut lists = Vec::with_capacity(Self::SLOTS);
 
         for _ in 0..Self::SLOTS {
-            lists.push(LinkedList::empty());
+            lists.push(Vec::new());
         }
 
         Self { lists }
@@ -65,7 +61,7 @@ impl<V> HashMapChaining<V> {
 
     pub fn insert<K: Into<u32>>(&mut self, key: K, value: V) {
         let hash = Self::hash(key.into());
-        self.lists[hash].insert(value);
+        self.lists[hash].push(value);
     }
 
     pub fn delete<K: Into<u32>>(&mut self, key: K) {
@@ -76,44 +72,6 @@ impl<V> HashMapChaining<V> {
     pub fn search<K: Into<u32>>(&self, key: K) -> Option<&V> {
         let hash = Self::hash(key.into());
         self.lists[hash].last()
-    }
-}
-
-impl<V> LinkedList<V> {
-    const NIL: usize = usize::MAX;
-
-    fn empty() -> Self {
-        Self { data: Vec::new() }
-    }
-
-    fn insert(&mut self, value: V) {
-        let cons = (value, Self::NIL);
-
-        self.data.push(cons);
-
-        if self.data.len() == 1 {
-            return;
-        }
-
-        let inserted = self.data.len() - 1;
-        let prevlast = self.data.len() - 2;
-
-        self.data[prevlast].1 = inserted;
-    }
-
-    fn pop(&mut self) {
-        if let [.., (_val, next), _last] = self.data.as_mut_slice() {
-            *next = Self::NIL;
-        }
-
-        self.data.pop();
-    }
-
-    fn last(&self) -> Option<&V> {
-        match self.data.as_slice() {
-            [] => None,
-            [.., (val, _next)] => Some(val),
-        }
     }
 }
 
