@@ -140,7 +140,7 @@ mod tests {
 
     #[test]
     fn simple() {
-        test::<Wyhash64RNG>(|r| 1 + r.gen() % 100, 100. / 2., true);
+        test::<Wyhash64RNG>(|r| r.gen() % 101, 100. / 2., true);
     }
 
     #[test]
@@ -169,12 +169,12 @@ mod tests {
     #[test]
     #[cfg(not(miri))]
     fn from_time() {
-        test::<Wyhash64RNG>(|r| 1 + r.gen() % 100, 100. / 2., false);
+        test::<Wyhash64RNG>(|r| r.gen() % 101, 100. / 2., false);
     }
 
     #[test]
     fn simple32() {
-        test::<Wyhash32RNG>(|r| 1 + r.gen() % 100, 100. / 2., true);
+        test::<Wyhash32RNG>(|r| r.gen() % 101, 100. / 2., true);
     }
 
     #[test]
