@@ -46,8 +46,7 @@ impl<'v, V> HashMapPerfectHashing<'v, V> {
         let next_prime = get_next_prime(max_key);
 
         let mut rng = Wyhash32RNG::from_seed(seed);
-        let const_a = rng.gen() as u32 % next_prime;
-        let const_b = rng.gen() as u32 % next_prime;
+        let (const_a, const_b) = generate_constants(&mut rng, num_keys, next_prime);
 
         let mut i = 0;
         let mut tables = ConstVec::new(num_keys as usize);
@@ -143,19 +142,9 @@ impl<'v, V> HashMapPerfectHashing<'v, V> {
 
 impl<V> SecondaryTable<'_, V> {
     const fn new(rng: &mut Wyhash32RNG, num_keys: u32, next_prime: u32) -> Self {
-        let max_keys = rng.gen() as u32 % (num_keys - 1) + 1;
-
-        let (const_a, const_b) = if max_keys == 1 {
-            (0, 0)
-        } else {
-            let a = rng.gen() as u32 % next_prime;
-            let b = rng.gen() as u32 % next_prime;
-
-            (a, b)
-        };
-
+        let max_keys = rng.gen_in_range(1..num_keys as u64) as u32;
+        let (const_a, const_b) = generate_constants(rng, max_keys, next_prime);
         let num_slots = max_keys * max_keys;
-
         let slots = construct_vector_of_nones(num_slots as usize);
 
         Self {
@@ -248,6 +237,17 @@ const fn is_prime(x: u32) -> bool {
     true
 }
 
+const fn generate_constants(rng: &mut Wyhash32RNG, max_keys: u32, next_prime: u32) -> (u32, u32) {
+    if max_keys == 1 {
+        (0, 0)
+    } else {
+        let a = rng.gen_in_range(1..next_prime as u64) as u32;
+        let b = rng.gen_in_range(0..next_prime as u64) as u32;
+
+        (a, b)
+    }
+}
+
 const fn construct_vector_of_nones<T>(len: usize) -> ConstVec<Option<T>> {
     let mut i = 0;
     let mut v = ConstVec::new(len);
@@ -280,7 +280,6 @@ fn const_vec() {
 }
 
 #[test]
-#[allow(long_running_const_eval)]
 fn simple() {
     const {
         let key_values = [
